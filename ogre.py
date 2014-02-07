@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+"""OpenFusion GIS Retriever"""
 
 def get(kinds, sources, relations):
     """Get local or recent media from a public source and return a dictionary.
