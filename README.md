@@ -1,4 +1,4 @@
-ogre
+OGRe
 ====
 
 OpenFusion GIS Retriever
