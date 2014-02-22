@@ -2,10 +2,11 @@
 
 """OGRe Location Query Handler"""
 
-import json
-import time
-from ogre.snowflake import *
+import base64
+import urllib
 from twython import Twython
+from warnings import warn
+from ogre.snowflake import *
 from ogre.credentials import TWITTER_CONSUMER_KEY, TWITTER_ACCESS_TOKEN
 
 
@@ -96,7 +97,7 @@ def get(sources, keyword="", constraints=None):
 
 
 def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
-    """Access tweets relative to a location from the Twitter API.
+    """Access Tweets from the Twitter API and return a list.
 
     keyword -- term to search for
     locale  -- 4-tuple containing latitude, longitude, radius, and unit.
@@ -132,30 +133,33 @@ def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
 
     twitter = Twython(TWITTER_CONSUMER_KEY, access_token=TWITTER_ACCESS_TOKEN)
     results = twitter.search(q=keyword.strip(),
-                             count=15,
+                             count=100,
                              geocode=coordinate,
                              since_id=since,
                              max_id=until)
-    #print json.dumps(results, indent=4, separators=(",", ": "))
 
+    data = []
+    post = {}
     for tweet in results["statuses"]:
         if tweet["coordinates"] is None:
             continue
-        latitude = tweet["coordinates"]["coordinates"][1]
-        longitude = tweet["coordinates"]["coordinates"][0]
-        print tweet["created_at"]+" @ ("+str(latitude)+","+str(longitude)+")"
+        post["source"] = "Twitter"
+        post["time"] = snowflake2utc(tweet["id"])
+        post["location"] = tweet["coordinates"]
+
         if "text" in media:
-            print "text:", tweet["text"]
+            post["text"] = tweet["text"]
         if "image" in media:
             if ("media" in tweet["entities"] and
                     tweet["entities"]["media"] is not None):
                 for entity in tweet["entities"]["media"]:
                     if entity["type"] == "photo":
-                        print "image:", entity["media_url"]
-                    else:
-                        raise NotImplementedError(
-                            'New type "'+entity["type"]+'" detected.'
+                        post["image"] = base64.b64encode(
+                            urllib.urlopen(entity["media_url"]).read()
                         )
-        print ""
+                    else:
+                        warn('New type "'+entity["type"]+'" detected.')
+        data.append(post)
+        post = {}
 
-    # TODO Extract only desired information from the results.
+    return data
