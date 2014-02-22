@@ -1,4 +1,0 @@
-OGRe
-====
-
-OpenFusion GIS Retriever
