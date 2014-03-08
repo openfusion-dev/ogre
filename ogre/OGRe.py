@@ -138,28 +138,32 @@ def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
                              since_id=since,
                              max_id=until)
 
-    data = []
-    post = {}
+    feature_collection = {}
+    feature_collection["type"] = "FeatureCollection"
+    feature_collection["features"] = []
+    feature = {}
     for tweet in results["statuses"]:
         if tweet["coordinates"] is None:
             continue
-        post["source"] = "Twitter"
-        post["time"] = snowflake2utc(tweet["id"])
-        post["location"] = tweet["coordinates"]
+        feature["type"] = "Feature"
+        feature["geometry"] = tweet["coordinates"]
+        feature["properties"] = {}
+        feature["properties"]["source"] = "Twitter"
+        feature["properties"]["time"] = snowflake2utc(tweet["id"])
 
         if "text" in media:
-            post["text"] = tweet["text"]
+            feature["properties"]["text"] = tweet["text"]
         if "image" in media:
             if ("media" in tweet["entities"] and
                     tweet["entities"]["media"] is not None):
                 for entity in tweet["entities"]["media"]:
                     if entity["type"] == "photo":
-                        post["image"] = base64.b64encode(
+                        feature["properties"]["image"] = base64.b64encode(
                             urllib.urlopen(entity["media_url"]).read()
                         )
                     else:
                         warn('New type "'+entity["type"]+'" detected.')
-        data.append(post)
-        post = {}
+        feature_collection["features"].append(feature)
+        feature = {}
 
-    return data
+    return feature_collection
