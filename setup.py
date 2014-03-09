@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+from ogre.__init__ import __version__
 
 setup(
     name="OGRe",
-    version="1.1.0b",
+    version=__version__,
     description="OpenFusion GIS Retriever",
     author="David Tucker",
     author_email="dmtucker@ucsc.edu",

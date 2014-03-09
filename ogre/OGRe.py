@@ -80,10 +80,13 @@ def get(sources, keyword="", constraints=None):
                 raise ValueError(
                     'Constraint may be "where", "when", or "what".'
                 )
-
     if not medium:
         medium = ("image", "sound", "text", "video")
-    result = {}
+
+    feature_collection = {
+        "type": "FeatureCollection",
+        "features": []
+    }
     source_map = {"twitter": _twitter}
     for source in sources:
         source = source.lower()
@@ -92,8 +95,9 @@ def get(sources, keyword="", constraints=None):
             print "Twitter is currently the only supported source."
             return
         else:
-            result[source] = source_map[source](keyword, locale, period, medium)
-    return result
+            for feature in source_map[source](keyword, locale, period, medium):
+                feature_collection["features"].append(feature)
+    return feature_collection
 
 
 def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
@@ -138,18 +142,18 @@ def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
                              since_id=since,
                              max_id=until)
 
-    feature_collection = {}
-    feature_collection["type"] = "FeatureCollection"
-    feature_collection["features"] = []
-    feature = {}
+    collection = []
     for tweet in results["statuses"]:
         if tweet["coordinates"] is None:
             continue
-        feature["type"] = "Feature"
-        feature["geometry"] = tweet["coordinates"]
-        feature["properties"] = {}
-        feature["properties"]["source"] = "Twitter"
-        feature["properties"]["time"] = snowflake2utc(tweet["id"])
+        feature = {
+            "type": "Feature",
+            "geometry": tweet["coordinates"],
+            "properties": {
+                "source": "Twitter",
+                "timestamp": snowflake2utc(tweet["id"])
+            }
+        }
 
         if "text" in media:
             feature["properties"]["text"] = tweet["text"]
@@ -163,7 +167,6 @@ def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
                         )
                     else:
                         warn('New type "'+entity["type"]+'" detected.')
-        feature_collection["features"].append(feature)
-        feature = {}
+        collection.append(feature)
 
-    return feature_collection
+    return collection
