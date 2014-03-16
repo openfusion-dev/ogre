@@ -4,6 +4,7 @@
 
 import base64
 import urllib
+from datetime import datetime
 from twython import Twython
 from warnings import warn
 from ogre.snowflake import *
@@ -151,7 +152,9 @@ def _twitter(keyword="", locale=None, period=None, medium=("image", "text")):
             "geometry": tweet["coordinates"],
             "properties": {
                 "source": "Twitter",
-                "timestamp": snowflake2utc(tweet["id"])
+                "timestamp": datetime.utcfromtimestamp(
+                    snowflake2utc(tweet["id"])
+                ).isoformat()+"Z"
             }
         }
 
