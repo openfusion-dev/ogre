@@ -1,3 +1,3 @@
 """OpenFusion GIS Retriever"""
 
-__version__ = "1.1.1b"
+__version__ = "2.1.2b"
