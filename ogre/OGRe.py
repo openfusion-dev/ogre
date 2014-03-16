@@ -1,13 +1,12 @@
-#!/usr/bin/python
-
 """OGRe Location Query Handler"""
 
 import base64
 import urllib
 from datetime import datetime
-from twython import Twython
 from warnings import warn
-from ogre.snowflake import *
+
+from twython import Twython
+from snowflake2time.snowflake import *
 from ogre.credentials import TWITTER_CONSUMER_KEY, TWITTER_ACCESS_TOKEN
 
 
