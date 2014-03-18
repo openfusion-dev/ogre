@@ -1,3 +1,5 @@
 """OpenFusion GIS Retriever"""
 
-__version__ = "2.1.2b"
+from ogre.OGRe import OGRe
+
+__version__ = "3.0.0b"

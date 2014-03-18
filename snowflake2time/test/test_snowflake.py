@@ -7,7 +7,7 @@
 
 import unittest
 
-from snowflake import *
+from snowflake2time.snowflake import *
 class SnowflakeTest(unittest.TestCase):
 
     def test_str2utc(self):
