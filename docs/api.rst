@@ -1,5 +1,8 @@
 API Reference
 =============
 
-.. automodule:: ogre.OGRe
+.. automodule:: ogre.api
+   :members:
+
+.. automodule:: ogre.Twitter
    :members:

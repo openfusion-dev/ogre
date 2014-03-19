@@ -16,7 +16,7 @@ To get OGRe, use one of the following methods:
 
 2. easy_install_
 
-.. _easy_install: https://pypi.python.org/pypi/setuptools
+.. _easy_install: https://pythonhosted.org/setuptools/easy_install.html
 
 .. code-block:: bash
 
@@ -59,10 +59,8 @@ To find Tweets with images posted within 1km of Twitter headquarters, use::
  retriever.get(
      ('Twitter',),
      keyword='',
-     constraints={
-         'what': ('image',),
-         'where': (37.781157, -122.398720, 1, 'km')
-     }
+     what=('image',),
+     where=(37.781157, -122.398720, 1, 'km')
  )
 
 .. note:: Either a keyword or constraints are required.

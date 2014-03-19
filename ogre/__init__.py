@@ -5,6 +5,6 @@ test -- subpackage for testing the OGRe module
 
 """
 
-from ogre.OGRe import OGRe
+from ogre.api import OGRe
 
-__version__ = "3.1.0"
+__version__ = "4.0.0"
