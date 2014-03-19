@@ -1,3 +1,9 @@
-The OpenFusion GIS Retriever fetches data from APIs offered to the public.
-It gets data based on a provided keyword, location, period of time, or
-media type. OGRe returns GeoJSON-formatted data that is geotagged.
+OpenFusion GIS Retriever
+========================
+OGRe fetches geotagged data from publicly available APIs based on a provided
+keyword, location, period of time, or media type. Results are returned in
+GeoJSON format.
+
+Documentation
+-------------
+https://ogre.readthedocs.org/

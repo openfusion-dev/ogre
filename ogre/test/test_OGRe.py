@@ -13,6 +13,8 @@ from ogre import OGRe
 
 class OGReTest (unittest.TestCase):
 
+    """Create objects that test the OGRe module."""
+
     def setUp(self):
         """Prepare to run tests on OGRe.
 

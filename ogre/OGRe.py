@@ -1,4 +1,11 @@
-"""OGRe Query Handler"""
+"""OGRe Query Handler
+
+:class:`OGRe` -- retriever object template
+
+    The following methods are currently exported:
+     - :func:`OGRe.get` : method for making a retriever fetch data
+
+"""
 
 import base64
 import urllib
@@ -9,6 +16,7 @@ from snowflake2time.snowflake import *
 
 
 class OGRe:
+
     """Create objects that contain API keys and API access points.
 
     A class is necessary here to avoid requiring API keys with every API call.
@@ -17,6 +25,8 @@ class OGRe:
     subjects them to data leak to other processes. This way developers are
     responsible for keeping their keys safe. Twython, the Twitter API wrapper,
     also uses this scheme.
+
+    :func:`get` -- method for retrieving data from a public source
 
     """
 
@@ -31,21 +41,53 @@ class OGRe:
         self.keychain = keys
 
     def get(self, sources, keyword="", constraints=None, api=None):
+
         """Retrieve multimedia from a public API and return a JSON dictionary.
 
-        sources     -- tuple of sources to get content from
-        keyword     -- term to search for
-        constraints -- dictionary of search parameters
-            The following keys are currently supported:
-            "where" : 4-tuple containing latitude, longitude, radius, and unit.
-                      "km" and "mi" are supported units.
-            "when"  : 2-tuple containing earliest and latest moments.
-                      Moments must be specified in Unix time.
-            "what"  : tuple of content mediums to get
-                      supported mediums: "image", "sound", "text", and "video"
-        api         -- API access point (used for testing)
+        :param sources: public APIs to get content from (required)
+        :type sources: tuple
+
+        :param keyword: term to search for
+        :type keyword: str
+
+        :param constraints: search parameters
+        :type constraints: dict
+
+        .. versionchanged:: 4.0.0
+           These will soon be kwargs instead of keys!
+
+        The following keys are currently supported:
+
+         - "where" : 4-tuple containing latitude, longitude, radius, and unit.
+             - "km" and "mi" are supported units.
+         - "when"  : 2-tuple containing earliest and latest moments.
+             - Moments must be specified in Unix time.
+         - "what"  : tuple of content mediums to get
+             - supported mediums: "image", "sound", "text", and "video"
+
+        .. versionadded:: 4.0.0
+
+        :param what: content mediums to get ("image", "sound", "text", or "video")
+        :type what: tuple
+
+        :param when: earliest and latest moments (POSIX timestamps)
+        :type when: tuple
+
+        :param where: latitude, longitude, radius, and unit ("km" or "mi")
+        :type where: tuple
+
+        Those will replace the `constraints` parameter.
+
+        :param api: API access point (used for testing)
+        :type api: callable
+
+        :raises: AttributeError, ValueError
+
+        :returns: GeoJSON FeatureCollection
+        :rtype: dict
 
         """
+
         # TODO Verify Twitter accepts any constraint instead of a keyword.
         if keyword is "" and constraints is None:
             raise ValueError("Specify either a keyword or constraints.")
@@ -137,6 +179,7 @@ class OGRe:
             medium=("image", "text"),
             api=None
     ):
+
         """Access Tweets from the Twitter API and return a list.
 
         keys    -- dictionary containing an API key and an access token
@@ -151,6 +194,7 @@ class OGRe:
         api     -- API access point (used for dependency injection)
 
         """
+
         media = []
         for kind in medium:
             if kind.lower() in ("image", "text"):
