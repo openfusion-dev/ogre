@@ -2,7 +2,9 @@
 
 :class:`OGRe` -- retriever object template
 
-:func:`OGRe.get` -- method for making a retriever fetch data
+:meth:`OGRe.fetch` -- method for making a retriever fetch data
+
+:meth:`OGRe.get` -- alias of :meth:`OGRe.fetch`
 
 """
 
@@ -20,7 +22,9 @@ class OGRe:
     This way developers are responsible for keeping their keys safe.
     Twython, the Twitter API wrapper, also uses this scheme.
 
-    :func:`get` -- method for retrieving data from a public source
+    :meth:`fetch` -- method for retrieving data from a public source
+
+    :meth:`get` -- backwards-compatible alias of :meth:`fetch`
 
     """
 
@@ -30,125 +34,151 @@ class OGRe:
         :param keys: dictionaries containing API keys for public sources
         :type keys: dict
 
-        .. note:: "Twitter" is the only supported source.
+        .. note:: "Twitter" is currently the only supported source.
+
+        Keys that a retriever object is instantiated with may be accessed later
+        through the :attr:`keychain` attribute.
+
+        .. note:: There is also a :attr:`keyring` attribute which maintains
+                  a mapping of the lowercase version of each key to the
+                  casing of the passed key. This enables you to pass a key with
+                  a name stylized in the manner of your choosing (e.g. twitter,
+                  Twitter, tWiTtEr, etc.)
+
+        :raises: ValueError
 
         """
+        self.keyring = {}
+        for key, chain in keys.items():
+            if key.lower() not in (
+                "twitter"
+            ):
+                raise ValueError('Keys may include "Twitter" only.')
+            self.keyring[key.lower()] = key
         self.keychain = keys
 
-    def get(
+    def fetch(
         self,
         sources,
+        media=("image", "sound", "text", "video"),
         keyword="",
-        what=None,
-        when=None,
-        where=None,
+        quantity=15,
+        location=None,
+        interval=None,
         api=None
     ):
 
-        """Fetch geotagged data from public APIs.
+        """Get geotagged data from public APIs.
 
         :param sources: public APIs to get content from (required)
         :type sources: tuple
 
-        :param keyword: term to search for
-        :type keyword: str
+        .. note:: "Twitter" is currently the only supported source.
 
-        :param what: content mediums to get
-        :type what: tuple
+        :param media: content mediums to get
+        :type media: tuple
 
         .. note:: "image", "sound", "text", or "video" are supported mediums.
 
-        :param when: earliest and latest moments (POSIX timestamps)
-        :type when: tuple
+        :param keyword: term to search for
+        :type keyword: str
 
-        :param where: latitude, longitude, radius, and unit
-        :type where: tuple
+        :param quantity: number of results to fetch
+        :type quantity: int
+
+        .. note:: The `quantity` parameter is satisfied on a best effort basis.
+                  Fewer results may be returned due to lack of availability.
+
+        :param location: latitude, longitude, radius, and unit
+        :type location: tuple
 
         .. note:: "km" or "mi" are supported units.
+
+        :param interval: earliest and latest moments (POSIX timestamps)
+        :type interval: tuple
+
+        .. note:: The order of earliest/latest moments does not matter.
 
         :param api: API access point (used for testing)
         :type api: callable
 
-        :raises: AttributeError, ValueError
+        :raises: ValueError
 
         :returns: GeoJSON FeatureCollection
         :rtype: dict
 
         """
 
-        # TODO Verify Twitter accepts any constraint instead of a keyword.
-        if keyword is "" and what is None and when is None and where is None:
-            raise ValueError("Specify either a keyword or constraints.")
-
-        medium = []
-        if what is not None:
-            for kind in what:
-                kind = kind.lower()
-                if kind not in (
-                    "image",
-                    "sound",
-                    "text",
-                    "video"
-                ):
-                    raise ValueError(
-                        'Medium may be "image", "sound", "text", or "video".'
-                    )
-                if kind not in medium:
-                    medium.append(kind)
-        if not medium:
-            medium = ("image", "sound", "text", "video")
-
-        period = None
-        if when is not None:
-            if len(when) != 2:
-                raise ValueError("usage: when=(earliest, latest)")
-            since = float(when[0])
-            if since < 0:
-                raise ValueError("Earliest moment must be POSIX timestamps.")
-            until = float(when[1])
-            if until < 0:
-                raise ValueError("Latest moment must be POSIX timestamps.")
-            if since > until:
-                since, until = until, since
-            period = (since, until)
-
-        locale = None
-        if where is not None:
-            if len(where) != 4:
-                raise ValueError(
-                    "usage: where=(latitude, longitude, radius, unit)"
-                )
-            latitude = float(where[0])
-            if latitude < -90 or latitude > 90:
-                raise ValueError("Latitude must be -90 to 90.")
-            longitude = float(where[1])
-            if longitude < -180 or longitude > 180:
-                raise ValueError("Longitude must be -180 to 180.")
-            radius = float(where[2])
-            if radius < 0:
-                raise ValueError("Radius must be positive.")
-            unit = where[3].lower()
-            if unit not in ("km", "mi"):
-                raise ValueError('Unit must be "km" or "mi".')
-            locale = (latitude, longitude, radius, unit)
+        source_map = {"twitter": twitter}
 
         feature_collection = {
             "type": "FeatureCollection",
             "features": []
         }
-        source_map = {"twitter": twitter}
-        for source in sources:
-            source = source.lower()
-            if source not in source_map.keys():
-                raise ValueError('Source may be "Twitter".')
-            else:
-                for feature in source_map[source](
-                    self.keychain["Twitter"],
-                    keyword,
-                    locale,
-                    period,
-                    medium,
-                    api
+        if media or quantity > 0:
+            for source in sources:
+                source = source.lower()
+                if source not in source_map.keys():
+                    raise ValueError('Source may be "Twitter".')
+                for features in source_map[source](
+                    keys=self.keychain[self.keyring[source]],
+                    media=media,
+                    keyword=keyword,
+                    quantity=quantity,
+                    location=location,
+                    interval=interval,
+                    api=api
                 ):
-                    feature_collection["features"].append(feature)
+                    feature_collection["features"].append(features)
         return feature_collection
+
+    def get(
+        self,
+        sources,
+        keyword="",
+        what=("image", "sound", "text", "video"),
+        when=None,
+        where=None,
+        how_many=15,
+        api=None
+    ):
+        """Provide a backwards-compatible alias of :meth:`fetch`.
+
+        .. deprecated: 4.1.0
+           This method has been replaced by :meth:`fetch` which mirrors the
+           interface used by individual source modules (e.g. :mod:`Twitter`).
+
+        :param sources: corresponds directly
+        :type sources: tuple
+
+        :param keyword: corresponds directly
+        :type keyword: str
+
+        :param what: corresponds to `media`
+        :type what: tuple
+
+        :param when: corresponds to `interval`
+        :type when: tuple
+
+        :param where: corresponds to `location`
+        :type where: tuple
+
+        :param how_many: corresponds to `quantity`
+        :type how_many: int
+
+        :param api: corresponds directly
+        :type api: callable
+
+        :returns: GeoJSON FeatureCollection
+        :rtype: dict
+
+        """
+        return self.fetch(
+            sources=sources,
+            media=what,
+            keyword=keyword,
+            interval=when,
+            location=where,
+            quantity=how_many,
+            api=api
+        )

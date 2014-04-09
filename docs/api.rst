@@ -6,3 +6,6 @@ API Reference
 
 .. automodule:: ogre.Twitter
    :members:
+
+.. automodule:: ogre.validation
+   :members:

@@ -1,10 +1,15 @@
 """OpenFusion GIS Retriever
 
-OGRe -- module used for getting data from public APIs
-test -- subpackage for testing the OGRe module
+`ogre.test` -- subpackage for testing OGRe
+
+:mod:`ogre.api` -- module for getting data from public APIs
+
+:mod:`ogre.Twitter` -- module for getting data from Twitter
+
+:mod:`ogre.validation` -- module for parameter validation and sanitation
 
 """
 
 from ogre.api import OGRe
 
-__version__ = "4.0.0"
+__version__ = "4.1.0"

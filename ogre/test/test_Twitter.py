@@ -1,4 +1,14 @@
-"""OGRe Twitter Interface Tests"""
+"""OGRe Twitter Interface Tests
+
+:class:`TwitterTest` -- Twitter interface test template
+
+:meth:`TwitterTest.setUp` -- test initialization
+
+:meth:`TwitterTest.test_sanitize_twitter` -- Twitter parameter preparation tests
+
+:meth:`TwitterTest.test_twitter` -- Twitter API query tests
+
+"""
 
 import base64
 import json
@@ -9,15 +19,23 @@ from datetime import datetime
 from mock import MagicMock, call
 from snowflake2time import snowflake
 from ogre import OGRe
-from ogre.Twitter import twitter
+from ogre.Twitter import *
 
 
-class OGReTest (unittest.TestCase):
+class TwitterTest (unittest.TestCase):
 
-    """Create objects that test the OGRe module."""
+    """Create objects that test the OGRe module.
+
+    :meth:`TwitterTest.setUp` -- retriever and Twython Mock initialization
+
+    :meth:`TwitterTest.test_sanitize_twitter` -- parameter cleansing tests
+
+    :meth:`TwitterTest.test_twitter` -- API access and results-packaging tests
+
+    """
 
     def setUp(self):
-        """Prepare to run tests on OGRe.
+        """Prepare to run tests on the Twitter interface.
 
         Since OGRe requires API keys to run and they cannot be stored
         conveniently, this test module retrieves them from the OS;
@@ -30,17 +48,135 @@ class OGReTest (unittest.TestCase):
         during these tests.
 
         """
-        self.retriever = OGRe({
-            "Twitter": {
-                "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
-                "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
+        self.retriever = OGRe(
+            keys={
+                "Twitter": {
+                    "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
+                    "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
+                }
             }
-        })
+        )
         self.api = MagicMock()
         with open("ogre/test/data/Twitter-response-example.json") as tweets:
             self.tweets = json.load(tweets)
 
+    def test_sanitize_twitter(self):
+
+        """Test the Twitter interface parameter sanitizer.
+
+        These tests should verify that malformed or invalid data is detected
+        before being sent to Twitter. They should also test that valid data is
+        formatted correctly for use by Twython.
+
+        """
+
+        with self.assertRaises(ValueError):
+            sanitize_twitter(keys={})
+        with self.assertRaises(ValueError):
+            sanitize_twitter(keys={"invalid": None})
+        with self.assertRaises(ValueError):
+            sanitize_twitter(keys={"consumer_key": None})
+        with self.assertRaises(ValueError):
+            sanitize_twitter(keys={"consumer_key": "key", "invalid": None})
+        with self.assertRaises(ValueError):
+            sanitize_twitter(
+                keys={
+                    "consumer_key": "key",
+                    "access_token": None
+                }
+            )
+        with self.assertRaises(ValueError):
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ]
+            )
+        with self.assertRaises(ValueError):
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                location=(2, 1, 0, "km")
+            )
+
+        self.assertEqual(
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=("text",),
+                keyword="test"
+            ),
+            (
+                self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                ("text",),
+                "test -pic.twitter.com",
+                15,
+                None,
+                (None, None)
+            )
+        )
+        self.assertEqual(
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=("image",),
+                keyword="test"
+            ),
+            (
+                self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                ("image",),
+                "test  pic.twitter.com",
+                15,
+                None,
+                (None, None)
+            )
+        )
+        self.assertEqual(
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                location=(0, 1, 2, "km")
+            ),
+            (
+                self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                ("image", "text"),
+                "",
+                15,
+                "0.0,1.0,2.0km",
+                (None, None)
+            )
+        )
+        self.assertEqual(
+            sanitize_twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                interval=(0, 1)
+            ),
+            (
+                self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                ("image", "text"),
+                "test",
+                15,
+                None,
+                (-5405765689543753728, -5405765685349449728)
+            )
+        )
+
     def test_twitter(self):
+
         """Test OGRe's access point to the Twitter API.
 
         These tests should make sure all input is validated correctly,
@@ -55,131 +191,70 @@ class OGReTest (unittest.TestCase):
 
         """
 
-        with self.assertRaises(ValueError):
-            twitter(self.retriever.keychain["Twitter"])
-        with self.assertRaises(KeyError):
-            twitter(
-                {"invalid": "invalid"},
-                keyword="test"
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=("malformed",)
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=("malformed", 0, 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(-100, 0, 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(100, 0, 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, "malformed", 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, -200, 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, 200, 0, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, 0, "malformed", "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, 0, -1, "km")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, 0, 0, "invalid")
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                locale=(0, 0, 0, 0)
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                period=("malformed",)
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                period=(-1, 1)
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                period=(1, -1)
-            )
-        with self.assertRaises(ValueError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                medium=("invalid",)
-            )
-        with self.assertRaises(AttributeError):
-            twitter(
-                self.retriever.keychain["Twitter"],
-                medium=(1,)
-            )
-
         self.assertEqual(
-            twitter(self.retriever.keychain["Twitter"], medium=()),
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=(),
+                keyword="test"
+            ),
+            []
+        )
+        self.assertEqual(
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                quantity=0
+            ),
             []
         )
 
         self.api.reset_mock()
         self.assertEqual(
             twitter(
-                self.retriever.keychain["Twitter"],
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=("image", "text"),
                 keyword="test",
-                locale=(0, 1, 2, "km"),
-                period=(3, 4),
-                medium=("image", "text"),
+                quantity=5,
+                location=(4, 3, 2, "km"),
+                interval=(1, 0),
                 api=self.api
             ),
             []
         )
         self.api.assert_called_once_with(
-            self.retriever.keychain["Twitter"]["consumer_key"],
-            access_token=self.retriever.keychain["Twitter"]["access_token"]
+            self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ]["consumer_key"],
+            access_token=self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ]["access_token"]
         )
         self.api().search.assert_called_once_with(
             q="test",
-            count=100,
-            geocode="0.0,1.0,2.0km",
-            since_id=-5405765676960841728,
-            max_id=-5405765672766537728
+            count=5,
+            geocode="4.0,3.0,2.0km",
+            since_id=-5405765689543753728,
+            max_id=-5405765685349449728
         )
+
         self.api.reset_mock()
         self.api().search.return_value = self.tweets
         self.assertEqual(
             twitter(
-                self.retriever.keychain["Twitter"],
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=("image", "text"),
                 keyword="test",
-                locale=(0, 1, 2, "km"),
-                period=(3, 4),
-                medium=("image", "text"),
+                quantity=2,
+                location=(0, 1, 2, "km"),
+                interval=(3, 4),
                 api=self.api
             ),
             [
@@ -231,6 +306,7 @@ class OGReTest (unittest.TestCase):
                 }
             ]
         )
+
         self.api.reset_mock()
 
 
