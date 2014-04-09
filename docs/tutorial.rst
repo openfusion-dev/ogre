@@ -77,12 +77,12 @@ be passed one of two ways: the `keys` parameter or via environment variables.
 If the latter is preferred, the following table shows what variables are
 needed for each source:
 
-+---------+----------------------+
-| Source  | Key Variable(s)      |
-+=========+======================+
-| Twitter | TWITTER_CONSUMER_KEY |
-|         | TWITTER_ACCESS_TOKEN |
-+---------+----------------------+
++---------+-----------------------+
+| Source  | Key Variable(s)       |
++=========+=======================+
+| Twitter | TWITTER_CONSUMER_KEY, |
+|         | TWITTER_ACCESS_TOKEN  |
++---------+-----------------------+
 
 Examples
 ~~~~~~~~
