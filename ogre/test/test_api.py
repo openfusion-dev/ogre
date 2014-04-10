@@ -131,14 +131,14 @@ class OGReTest (unittest.TestCase):
             }
         )
         self.assertEqual(
-            self.retriever.fetch(media=()),
+            self.retriever.fetch(sources=("Twitter",), media=()),
             {
                 "type": "FeatureCollection",
                 "features": []
             }
         )
         self.assertEqual(
-            self.retriever.fetch(quantity=0),
+            self.retriever.fetch(sources=("Twitter",), quantity=0),
             {
                 "type": "FeatureCollection",
                 "features": []

@@ -39,7 +39,7 @@ def main():
     parser.add_argument(
         "-m", "--media",
         help="content mediums to get",
-        default=("image", "sound", "text", "video"),
+        default=None,
         action="append"
     )
     parser.add_argument(
@@ -76,6 +76,8 @@ def main():
                 "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
             }
         }
+    if args.media is None:
+        args.media = ("image", "sound", "text", "video")
     if args.location is not None:
         args.location[0] = float(args.location[0])
         args.location[1] = float(args.location[1])

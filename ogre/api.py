@@ -115,7 +115,7 @@ class OGRe:
             "type": "FeatureCollection",
             "features": []
         }
-        if media or quantity > 0:
+        if media and quantity > 0:
             for source in sources:
                 source = source.lower()
                 if source not in source_map.keys():

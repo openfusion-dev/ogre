@@ -108,11 +108,17 @@ def sanitize_twitter(
             interval=interval
         )
 
+    kinds = []
     if clean_media is not None:
-        if clean_media == ("image",):
-            q += "  pic.twitter.com"
-        elif clean_media == ("text",):
-            q += " -pic.twitter.com"
+        for clean_medium in clean_media:
+            if clean_medium in ("image", "text"):
+                kinds.append(clean_medium)
+    kinds = tuple(kinds)
+
+    if kinds == ("image",):
+        q += "  pic.twitter.com"
+    elif kinds == ("text",):
+        q += " -pic.twitter.com"
     q = q.strip()
 
     geocode = None
@@ -129,12 +135,12 @@ def sanitize_twitter(
             utc2snowflake(clean_interval[1])
         )
 
-    if q in ("", " -pic.twitter.com") and geocode is None:
+    if q in ("", "-pic.twitter.com") and geocode is None:
         raise ValueError("Specify either a keyword or a location.")
 
     return (
         clean_keys,
-        clean_media,
+        kinds,
         q,
         clean_quantity,
         geocode,
