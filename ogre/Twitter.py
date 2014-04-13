@@ -5,9 +5,12 @@
 """
 
 import base64
+import hashlib
+import logging
+import sys
 import urllib
 from datetime import datetime
-from warnings import warn
+from time import time
 from twython import Twython
 from ogre.validation import sanitize
 from snowflake2time.snowflake import *
@@ -211,28 +214,66 @@ def twitter(
 
     if not kinds or remaining < 1:
         return []
-
     if api is None:
         api = Twython
 
+    qid = hashlib.md5(
+        str(time.time()) +
+        str(q) +
+        str(remaining) +
+        str(geocode) +
+        str(since_id) +
+        str(max_id)
+    ).hexdigest()
+    logging.basicConfig(
+        filename="OGRe.log",
+        level=logging.ERROR,
+        format="%(asctime)s %(levelname)s:%(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S %Z"
+    )
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    log.info(qid+" Request: Twitter")
+    log.debug(
+        qid+" Status:" +
+        " keyword("+str(q)+")" +
+        " quantity("+str(remaining)+")" +
+        " location("+str(geocode)+")" +
+        " interval("+str(since_id)+","+str(max_id)+")"
+    )
+
     total = remaining
+    maximum_queries = 450  # Twitter allows 450 requests every 15 minutes.
 
     collection = []
-    for i in range(0, 450):  # Twitter allows 450 requests every 15 minutes.
+    for query in range(0, maximum_queries):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
-        results = api(
-            keychain["consumer_key"],
-            access_token=keychain["access_token"]
-        ).search(
-            q=q,
-            count=count,
-            geocode=geocode,
-            since_id=since_id,
-            max_id=max_id
-        )
+        try:
+            results = api(
+                keychain["consumer_key"],
+                access_token=keychain["access_token"]
+            ).search(
+                q=q,
+                count=count,
+                geocode=geocode,
+                since_id=since_id,
+                max_id=max_id
+            )
+        except:
+            log.info(
+                qid+" Failure: " +
+                str(query+1)+" queries produced " +
+                str(len(collection))+" results. " +
+                str(sys.exc_info()[1])
+            )
+            raise
         if "statuses" not in results.keys():
-            # Query is too complex.
-            # TODO Test overly complex queries.
+            log.info(
+                qid+" Failure: " +
+                str(query+1)+" queries produced " +
+                str(len(collection))+" results. " +
+                "The request is too complex."
+            )
             break
         for tweet in results["statuses"]:
             if tweet["coordinates"] is None:
@@ -253,23 +294,46 @@ def twitter(
                 if ("media" in tweet["entities"] and
                         tweet["entities"]["media"] is not None):
                     for entity in tweet["entities"]["media"]:
-                        if entity["type"] == "photo":
+                        if entity["type"].lower() == "photo":
                             feature["properties"]["image"] = base64.b64encode(
                                 urllib.urlopen(entity["media_url"]).read()
                             )
                         else:
-                            warn('New type "'+entity["type"]+'" detected.')
+                            log.warn(
+                                qid+" Unrecognized Entity ("+entity["type"]+")"
+                            )
             collection.append(feature)
-        if len(collection) < total:
-            remaining = total-len(collection)
-        else:
+        remained = remaining
+        remaining = total-len(collection)
+        log.debug(
+            qid+" Status:" +
+            " 1 query produced "+str(remained-remaining)+" results."
+        )
+        if remaining <= 0:
+            log.info(
+                qid+" Success: " +
+                str(query+1)+" queries produced " +
+                str(len(collection))+" results."
+            )
             break
         if "next_results" not in results["search_metadata"].keys():
-            # All available results have been received.
+            log.info(
+                qid+" Success: " +
+                str(query+1)+" queries produced " +
+                str(len(collection))+" results. " +
+                "No retrievable results remain."
+            )
             break
         max_id = int(
             results["search_metadata"]["next_results"]
             .split("max_id=")[1]
             .split("&")[0]
         )
+        if query+1 >= maximum_queries:
+            log.info(
+                qid+" Success: " +
+                str(query+1)+" queries produced " +
+                str(len(collection))+" results. " +
+                "No remaining results are retrievable."
+            )
     return collection
