@@ -283,7 +283,7 @@ def twitter(
                 "geometry": tweet["coordinates"],
                 "properties": {
                     "source": "Twitter",
-                    "timestamp": datetime.utcfromtimestamp(
+                    "time": datetime.utcfromtimestamp(
                         snowflake2utc(tweet["id"])
                     ).isoformat()+"Z"
                 }
