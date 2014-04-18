@@ -276,7 +276,7 @@ class TwitterTest (unittest.TestCase):
                             self.tweets["statuses"][0]
                                 ["entities"]["media"][0]["media_url"]
                         ).read()),
-                        "timestamp": datetime.utcfromtimestamp(
+                        "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][0]["id"]
                             )
@@ -297,7 +297,7 @@ class TwitterTest (unittest.TestCase):
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
-                        "timestamp": datetime.utcfromtimestamp(
+                        "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][1]["id"]
                             )

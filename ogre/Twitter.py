@@ -214,8 +214,6 @@ def twitter(
 
     if not kinds or remaining < 1:
         return []
-    if api is None:
-        api = Twython
 
     qid = hashlib.md5(
         str(time.time()) +
@@ -242,6 +240,10 @@ def twitter(
         " interval("+str(since_id)+","+str(max_id)+")"
     )
 
+    if api is None:
+        api = Twython
+    db = api(keychain["consumer_key"], access_token=keychain["access_token"])
+
     total = remaining
     maximum_queries = 450  # Twitter allows 450 requests every 15 minutes.
 
@@ -249,16 +251,14 @@ def twitter(
     for query in range(0, maximum_queries):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
-            results = api(
-                keychain["consumer_key"],
-                access_token=keychain["access_token"]
-            ).search(
+            results = db.search(
                 q=q,
                 count=count,
                 geocode=geocode,
                 since_id=since_id,
                 max_id=max_id
             )
+            # TODO db.get_lastfunction_header("x-rate-limit-remaining")
         except:
             log.info(
                 qid+" Failure: " +
