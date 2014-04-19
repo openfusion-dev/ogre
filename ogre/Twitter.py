@@ -243,9 +243,11 @@ def twitter(
     if api is None:
         api = Twython
     db = api(keychain["consumer_key"], access_token=keychain["access_token"])
-
+    limits = db.get_application_rate_limit_status()
+    maximum_queries =\
+        limits["resources"]["search"]["/search/tweets"]["remaining"]
+    log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
     total = remaining
-    maximum_queries = 450  # Twitter allows 450 requests every 15 minutes.
 
     collection = []
     for query in range(0, maximum_queries):
@@ -258,7 +260,6 @@ def twitter(
                 since_id=since_id,
                 max_id=max_id
             )
-            # TODO db.get_lastfunction_header("x-rate-limit-remaining")
         except:
             log.info(
                 qid+" Failure: " +
@@ -336,4 +337,8 @@ def twitter(
                 str(len(collection))+" results. " +
                 "No remaining results are retrievable."
             )
+    log.debug(
+        qid+" Status: " +
+        db.get_lastfunction_header("x-rate-limit-remaining")+" queries remain."
+    )
     return collection
