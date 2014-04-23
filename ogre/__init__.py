@@ -12,4 +12,4 @@
 
 from ogre.api import OGRe
 
-__version__ = "4.2.0b"
+__version__ = "4.2.0"

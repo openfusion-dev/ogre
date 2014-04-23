@@ -246,7 +246,10 @@ def twitter(
     limits = db.get_application_rate_limit_status()
     maximum_queries =\
         limits["resources"]["search"]["/search/tweets"]["remaining"]
-    log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
+    if maximum_queries < 1:
+        log.info(qid+" Failure: Queries are being limited.")
+    else:
+        log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
     total = remaining
 
     collection = []
@@ -318,8 +321,9 @@ def twitter(
             )
             break
         if "next_results" not in results["search_metadata"].keys():
+            outcome = "Success" if len(collection) > 0 else "Failure"
             log.info(
-                qid+" Success: " +
+                qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +
                 str(len(collection))+" results. " +
                 "No retrievable results remain."
@@ -331,14 +335,11 @@ def twitter(
             .split("&")[0]
         )
         if query+1 >= maximum_queries:
+            outcome = "Success" if len(collection) > 0 else "Failure"
             log.info(
-                qid+" Success: " +
+                qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +
                 str(len(collection))+" results. " +
                 "No remaining results are retrievable."
             )
-    log.debug(
-        qid+" Status: " +
-        db.get_lastfunction_header("x-rate-limit-remaining")+" queries remain."
-    )
     return collection
