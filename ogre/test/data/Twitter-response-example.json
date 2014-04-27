@@ -428,11 +428,17 @@
             "truncated": false,
             "text": "RT @talela94: #myroomatesarebetterthanyours http://t.co/VHf7kwsIwS",
             "in_reply_to_status_id": null,
-            "id": 445705498004709378,
+            "id": null,
             "favorite_count": 0,
             "source": "<a href=\"http://twitter.com/download/iphone\" rel=\"nofollow\">Twitter for iPhone</a>",
             "retweeted": false,
-            "coordinates": null,
+            "coordinates": {
+                "type": "Point",
+                "coordinates": [
+                    -122.05851752,
+                    36.99568187
+                ]
+            },
             "entities": {
                 "symbols": [],
                 "user_mentions": [
@@ -499,7 +505,7 @@
             "in_reply_to_screen_name": null,
             "in_reply_to_user_id": null,
             "retweet_count": 1,
-            "id_str": "445705498004709378",
+            "id_str": "null",
             "favorited": false,
             "retweeted_status": {
                 "contributors": null,
@@ -717,7 +723,13 @@
                 "default_profile": true,
                 "is_translator": false
             },
-            "geo": null,
+            "geo": {
+                "type": "Point",
+                "coordinates": [
+                    -122.05851752,
+                    36.99568187
+                ]
+            },
             "in_reply_to_user_id_str": null,
             "possibly_sensitive": false,
             "lang": "en",

@@ -158,7 +158,7 @@ def twitter(
         quantity=15,
         location=None,
         interval=None,
-        api=None
+        **kwargs
 ):
 
     """Fetch Tweets from the Twitter API.
@@ -212,9 +212,6 @@ def twitter(
             interval=interval
         )
 
-    if not kinds or remaining < 1:
-        return []
-
     qid = hashlib.md5(
         str(time.time()) +
         str(q) +
@@ -230,33 +227,48 @@ def twitter(
         datefmt="%Y/%m/%d %H:%M:%S %Z"
     )
     log = logging.getLogger(__name__)
-    log.setLevel(logging.INFO)
-    log.info(qid+" Request: Twitter")
-    log.debug(
-        qid+" Status:" +
-        " keyword("+str(q)+")" +
-        " quantity("+str(remaining)+")" +
-        " location("+str(geocode)+")" +
-        " interval("+str(since_id)+","+str(max_id)+")"
-    )
-
-    if api is None:
-        api = Twython
-    db = api(keychain["consumer_key"], access_token=keychain["access_token"])
-    limits = db.get_application_rate_limit_status()
-    maximum_queries =\
-        limits["resources"]["search"]["/search/tweets"]["remaining"]
-    if maximum_queries < 1:
-        log.info(qid+" Failure: Queries are being limited.")
+    if kwargs.get("test", False):
+        log.setLevel(logging.DEBUG)
+        log.info(qid+" Request: Twitter TEST "+kwargs.get("test_message", ""))
+        log.debug(
+            qid+" Status:" +
+            " media("+str(media)+")" +
+            " keyword("+str(q)+")" +
+            " quantity("+str(remaining)+")" +
+            " location("+str(geocode)+")" +
+            " interval("+str(since_id)+","+str(max_id)+")" +
+            " kwargs("+str(kwargs)+")"
+        )
     else:
-        log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
+        log.setLevel(logging.INFO)
+        log.info(qid+" Request: Twitter")
+
+    if not kinds or remaining < 1:
+        log.info(qid+" Success: No results were requested.")
+        return []
+
+    api = kwargs.get("api", Twython)(
+        keychain["consumer_key"],
+        access_token=keychain["access_token"]
+    )
+    limits = api.get_application_rate_limit_status()
+    maximum_queries = 450  # Twitter allows 450 queries every 15 minutes.
+    try:
+        maximum_queries =\
+            int(limits["resources"]["search"]["/search/tweets"]["remaining"])
+        if maximum_queries < 1:
+            log.info(qid+" Failure: Queries are being limited.")
+        else:
+            log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
+    except KeyError:
+        log.warn(qid+" Unobtainable Rate Limit")
     total = remaining
 
     collection = []
     for query in range(0, maximum_queries):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
-            results = db.search(
+            results = api.search(
                 q=q,
                 count=count,
                 geocode=geocode,
@@ -271,7 +283,7 @@ def twitter(
                 str(sys.exc_info()[1])
             )
             raise
-        if "statuses" not in results.keys():
+        if results.get("statuses") is None:
             log.info(
                 qid+" Failure: " +
                 str(query+1)+" queries produced " +
@@ -280,11 +292,18 @@ def twitter(
             )
             break
         for tweet in results["statuses"]:
-            if tweet["coordinates"] is None:
+            if tweet.get("coordinates") is None or tweet.get("id") is None:
+                # Tweets must be geotagged and timestamped.
                 continue
             feature = {
                 "type": "Feature",
-                "geometry": tweet["coordinates"],
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        tweet["coordinates"]["coordinates"][0],
+                        tweet["coordinates"]["coordinates"][1]
+                    ]
+                },
                 "properties": {
                     "source": "Twitter",
                     "time": datetime.utcfromtimestamp(
@@ -293,20 +312,31 @@ def twitter(
                 }
             }
             if "text" in kinds:
-                feature["properties"]["text"] = tweet["text"]
+                if tweet.get("text") is not None:
+                    feature["properties"]["text"] = tweet["text"]
             if "image" in kinds:
-                if ("media" in tweet["entities"] and
-                        tweet["entities"]["media"] is not None):
+                if not kwargs.get("strict_media", False):
+                    if tweet.get("text") is not None:
+                        feature["properties"]["text"] = tweet["text"]
+                if tweet.get("entities", {}).get("media") is not None:
                     for entity in tweet["entities"]["media"]:
-                        if entity["type"].lower() == "photo":
-                            feature["properties"]["image"] = base64.b64encode(
-                                urllib.urlopen(entity["media_url"]).read()
-                            )
-                        else:
-                            log.warn(
-                                qid+" Unrecognized Entity ("+entity["type"]+")"
-                            )
-            collection.append(feature)
+                        if entity.get("type") is not None:
+                            if entity["type"].lower() == "photo":
+                                media_url = "media_url_https"
+                                if not kwargs.get("secure", True):
+                                    media_url = "media_url"
+                                if entity.get(media_url) is not None:
+                                    feature["properties"]["image"] =\
+                                        base64.b64encode(
+                                            kwargs.get(
+                                                "network",
+                                                urllib.urlopen
+                                            )(
+                                                entity[media_url]
+                                            ).read()
+                                        )
+            if len(feature["properties"]) > 2:
+                collection.append(feature)
         remained = remaining
         remaining = total-len(collection)
         log.debug(
@@ -320,7 +350,7 @@ def twitter(
                 str(len(collection))+" results."
             )
             break
-        if "next_results" not in results["search_metadata"].keys():
+        if results.get("search_metadata", {}).get("next_results") is None:
             outcome = "Success" if len(collection) > 0 else "Failure"
             log.info(
                 qid+" "+outcome+": " +

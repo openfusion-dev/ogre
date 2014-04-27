@@ -65,7 +65,7 @@ class OGRe:
         quantity=15,
         location=None,
         interval=None,
-        api=None
+        **kwargs
     ):
 
         """Get geotagged data from public APIs.
@@ -127,7 +127,7 @@ class OGRe:
                     quantity=quantity,
                     location=location,
                     interval=interval,
-                    api=api
+                    **kwargs
                 ):
                     feature_collection["features"].append(features)
         return feature_collection
@@ -140,7 +140,7 @@ class OGRe:
         when=None,
         where=None,
         how_many=15,
-        api=None
+        **kwargs
     ):
         """Provide a backwards-compatible alias of :meth:`fetch`.
 
@@ -166,9 +166,6 @@ class OGRe:
         :param how_many: corresponds to `quantity`
         :type how_many: int
 
-        :param api: corresponds directly
-        :type api: callable
-
         :returns: GeoJSON FeatureCollection
         :rtype: dict
 
@@ -180,5 +177,5 @@ class OGRe:
             interval=when,
             location=where,
             quantity=how_many,
-            api=api
+            **kwargs
         )

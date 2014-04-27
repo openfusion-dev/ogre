@@ -15,7 +15,8 @@
 import json
 import os
 import unittest
-from mock import MagicMock, call
+from mock import MagicMock
+from StringIO import StringIO
 from ogre import OGRe
 from ogre.Twitter import twitter
 
@@ -84,6 +85,7 @@ class OGReTest (unittest.TestCase):
     """
 
     def setUp(self):
+
         """Prepare to run tests on OGRe.
 
         Since OGRe requires API keys to run and they cannot be stored
@@ -97,6 +99,7 @@ class OGReTest (unittest.TestCase):
         during these tests.
 
         """
+
         self.retriever = OGRe(
             keys={
                 "Twitter": {
@@ -105,9 +108,24 @@ class OGReTest (unittest.TestCase):
                 }
             }
         )
+
         self.api = MagicMock()
+        self.api().get_application_rate_limit_status.return_value = {
+            "resources": {
+                "search": {
+                    "/search/tweets": {
+                        "remaining": 2
+                    }
+                }
+            }
+        }
         with open("ogre/test/data/Twitter-response-example.json") as tweets:
-            self.tweets = json.load(tweets)
+            self.api().search.return_value = json.load(tweets)
+        self.api.reset_mock()
+
+        self.network = MagicMock()
+        self.network.side_effect = lambda _: StringIO("test_image")
+        self.network.reset_mock()
 
     def test_fetch(self):
 
@@ -146,8 +164,28 @@ class OGReTest (unittest.TestCase):
         )
 
         self.api.reset_mock()
-        self.api().search.return_value = self.tweets
+        self.network.reset_mock()
+        control = {
+            "type": "FeatureCollection",
+            "features": twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                media=("image", "text"),
+                keyword="test",
+                quantity=2,
+                location=(0, 1, 2, "km"),
+                interval=(3, 4),
+                test=True,
+                test_message="GeoJSON FeatureCollection Packaging (Control)",
+                api=self.api,
+                network=self.network
+            )
+        }
+        self.api.reset_mock()
+        self.network.reset_mock()
         self.assertEqual(
+            control,
             self.retriever.fetch(
                 sources=("Twitter",),
                 media=("image", "text"),
@@ -155,24 +193,12 @@ class OGReTest (unittest.TestCase):
                 quantity=2,
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
-                api=self.api
-            ),
-            {
-                "type": "FeatureCollection",
-                "features": twitter(
-                    keys=self.retriever.keychain[
-                        self.retriever.keyring["twitter"]
-                    ],
-                    media=("image", "text"),
-                    keyword="test",
-                    quantity=2,
-                    location=(0, 1, 2, "km"),
-                    interval=(3, 4),
-                    api=self.api
-                )
-            }
+                test=True,
+                test_message="GeoJSON FeatureCollection Packaging",
+                api=self.api,
+                network=self.network
+            )
         )
-        self.api.reset_mock()
 
 
 if __name__ == "__main__":
