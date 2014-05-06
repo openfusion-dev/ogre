@@ -17,31 +17,25 @@ def validate(
 
     """Check common interface parameters for errors and validity.
 
-    :param media: content mediums to get
     :type media: tuple
+    :param media: "image", "sound", "text", and "video" are valid mediums.
 
-    .. note:: "image", "sound", "text", or "video" are valid mediums.
-
-    :param keyword: search term(s)
     :type keyword: str
+    :param keyword: Valid criteria varies by source.
 
-    :param quantity: number of results to fetch
     :type quantity: int
+    :param quantity: Specify a positive quota of desired results.
 
-    .. note:: The `quantity` parameter must be positive.
-
-    :param location: latitude, longitude, radius, and unit
     :type location: tuple
+    :param location: Specify a location (latitude, longitude, radius, unit)
+                     composed of 3 numbers and a string, respectively.
+                     "km" and "mi" are supported units.
 
-    .. note:: The `latitude`, `longitude`, and `radius` parameters should be
-              floats or integers, and the `unit` parameters must be a string.
-              "km" or "mi" are supported units.
-
-    :param interval: earliest and latest moments (POSIX timestamps)
     :type interval: tuple
-
-    .. note:: The `earliest` and `latest` parameters should be floats or
-              integers and must be positive.
+    :param interval: Specify a period of time (earliest, latest)
+                     composed of 2 POSIX timestamps (positive numbers).
+                     The order of earliest/latest moments does not matter as
+                     the lower number will be considered earliest.
 
     :raises: ValueError
 
@@ -107,29 +101,29 @@ def sanitize(
 
     """Validate and transform input to expected types.
 
-    :param media: content mediums to get
+    .. seealso:: :meth:`validate` describes the format each
+                 parameter must have.
+
     :type media: tuple
+    :param media: Specify content mediums to make lowercase and deduplicate.
 
-    .. note:: Duplicates are removed, and all mediums are made lowercase.
-
-    :param keyword: search term(s)
     :type keyword: str
+    :param keyword: Specify search criteria.
 
-    :param quantity: number of results to fetch
     :type quantity: int
+    :param quantity: Specify a quota of results.
 
-    :param location: latitude, longitude, radius, and unit
     :type location: tuple
+    :param location: Specify a location to make numeric
+                     (latitude, longitude, radius) and lowercase (unit).
 
-    .. note:: The `unit` parameter is made lowercase.
-
-    :param interval: earliest and latest moments (POSIX timestamps)
     :type interval: tuple
+    :param interval: Specify earliest and latest moments to make numeric and
+                     sort in ascending order.
 
-    .. note:: The `earliest` and `latest` parameters are put in ascending order.
-
-    :returns: Each passed parameter is returned (in order) in the proper format.
     :rtype: tuple
+    :returns: sanitized parameters
+              (media, keyword, quantity, location, interval)
 
     """
 

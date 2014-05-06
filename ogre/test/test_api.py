@@ -89,7 +89,7 @@ class OGReTest (unittest.TestCase):
         """Prepare to run tests on OGRe.
 
         Since OGRe requires API keys to run and they cannot be stored
-        conveniently, this test module retrieves them from the OS;
+        conveniently, this test module retrieves them from the environment;
         however, to prevent OGRe from actually querying the APIs
         (and subsequently retrieving unpredictable data),
         a MagicMock object is used to do a dependency injection.
@@ -97,6 +97,8 @@ class OGReTest (unittest.TestCase):
         (although they may be necessary in the future).
         Predictable results are stored in the data directory to be read
         during these tests.
+        The network is also injected to prevent testing from depending on
+        and internet connection or sources being up.
 
         """
 
@@ -133,6 +135,8 @@ class OGReTest (unittest.TestCase):
 
         These tests should ensure that the retrieved results are packaged
         in a GeoJSON FeatureCollection object properly.
+        They should also verify that empty requests fail fast
+        (e.g. quantity < 1 or media == []).
 
         """
 

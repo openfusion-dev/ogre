@@ -27,59 +27,36 @@ def sanitize_twitter(
 
     """Validate and prepare parameters for use in Twitter data retrieval.
 
-    .. seealso:: https://dev.twitter.com/docs/api/1.1/get/search/tweets
+    .. seealso:: :meth:`ogre.validation.validate` describes the format each
+                 parameter must have.
 
-    :param keys: Twitter API keys
     :type keys: dict
+    :param keys: Specify Twitter API keys.
+                 Twitter **requires** a "consumer_key" and "access_token".
 
-    .. note:: Twitter **requires** a "consumer_key" and "access_token".
-
-    :param media: content mediums to get
     :type media: tuple
+    :param media: Specify content mediums to make lowercase and deduplicate.
+                  "image" and "text" are supported mediums.
 
-    .. note:: Twitter supports posts containing "image" and "text" only.
-
-    :param keyword: search term(s)
     :type keyword: str
+    :param keyword: Specify search criteria to incorporate
+                    the requested media in.
 
-    .. note:: "Queries can be limited due to complexity." If this happens, no
-              results will be returned. To avoid this, follow Twitter Best
-              Practices including the following:
-              "Limit your searches to 10 keywords and operators."
-
-    .. seealso:: https://dev.twitter.com/docs/using-search
-
-    :param quantity: number of results to fetch
     :type quantity: int
+    :param quantity: Specify a quota of results.
 
-    .. note:: Twitter will return 15 results by default, and up to 100 can be
-              requested in a single query. If a number larger than 100 is
-              specified, the retriever will make multiple queries in an attempt
-              to satisfy the requested `quantity`, but this is done on a
-              best effort basis. Whether the specified number is returned or
-              not depends on Twitter.
-
-    :param location: latitude, longitude, radius, and unit
     :type location: tuple
+    :param location: Specify a location to format as a Twitter geocode
+                     ("<latitude>,<longitude>,<radius><unit>").
 
-    .. note:: Since OGRe only returns geotagged results, the larger the
-              specified radius, the fewer results will be returned. This is
-              because of the way Twitter satisfies geocoded queries. It uses
-              so-called "fuzzy matching logic" to deduce the location of Tweets
-              posted publicly but without location data. OGRe filters these out.
-
-    :param interval: earliest and latest moments (POSIX timestamps)
     :type interval: tuple
-
-    .. note:: "The Search API is not complete index of all Tweets,
-               but instead an index of recent Tweets." Twitter's definition of
-               "recent" is rather vague, but when an interval is not specified,
-               "that index includes between 6-9 days of Tweets."
+    :param interval: Specify earliest and latest moments to convert to
+                     Twitter Snowflake IDs.
 
     :raises: ValueError
 
-    :returns: Each passed parameter is returned (in order) in the proper format.
     :rtype: tuple
+    :returns: Each passed parameter is returned (in order) in the proper format.
 
     """
 
@@ -163,42 +140,92 @@ def twitter(
 
     """Fetch Tweets from the Twitter API.
 
-    :param keys: API key and access token
+    .. seealso:: :meth:`sanitize_twitter` describes more about
+                 the format each parameter must have.
+
     :type keys: dict
+    :param keys: Specify an API key and access token.
 
-    .. note:: "consumer_key" and "access_token" are **required** keys.
-
-    :param media: content mediums to get
     :type media: tuple
+    :param media: Specify content mediums to fetch.
+                  "text" or "image" are supported mediums.
 
-    .. note:: "text" or "image" are supported mediums.
-
-    :param keyword: term to search for
     :type keyword: str
+    :param keyword: Specify search criteria.
+                    "Queries can be limited due to complexity."
+                    If this happens, no results will be returned.
+                    To avoid this, follow Twitter Best Practices including
+                    the following:
+                    "Limit your searches to 10 keywords and operators."
 
-    :param quantity: quantity of results to fetch
     :type quantity: int
+    :param quantity: Specify a quota of results to fetch.
+                     Twitter will return 15 results by default,
+                     and up to 100 can be requested in a single query.
+                     If a number larger than 100 is specified,
+                     the retriever will make multiple queries in an attempt
+                     to satisfy the requested `quantity`,
+                     but this is done on a best effort basis.
+                     Whether the specified number is returned or
+                     not depends on Twitter.
 
-    .. note:: The `quantity` parameter is satisfied on a best effort basis.
-              Fewer results may be returned due to lack of availability.
-
-    :param location: latitude, longitude, radius, and unit
     :type location: tuple
+    :param location: Specify a place (latitude, longitude, radius, unit)
+                     to search.
+                     Since OGRe only returns geotagged results,
+                     the larger the specified radius,
+                     the fewer results will be returned.
+                     This is because of the way Twitter satisfies
+                     geocoded queries.
+                     It uses so-called "fuzzy matching logic" to deduce the
+                     location of Tweets posted publicly without location data.
+                     OGRe filters these out.
 
-    .. note:: "km" or "mi" are supported units.
-
-    :param interval: earliest and latest moments (POSIX timestamps)
     :type interval: tuple
+    :param interval: Specify a period of time (earliest, latest) to search.
+                     "The Search API is not complete index of all Tweets,
+                     but instead an index of recent Tweets."
+                     Twitter's definition of "recent" is rather vague,
+                     but when an interval is not specified,
+                     "that index includes between 6-9 days of Tweets."
 
-    .. note:: The order of earliest/latest moments does not matter.
+    :type strict_media: bool
+    :param strict_media: Specify whether to only return the requested media
+                         (defaults to False).
+                         Setting this to False helps build caches faster at
+                         no additional cost.
+                         For instance, since Twitter automatically sends the
+                         text of a Tweet back, if `("image",)` is passed for
+                         `media`, the text on hand will only be filtered if
+                         `strict_media` is True.
 
-    :param api: API access point (used for dependency injection)
+    :type secure: bool
+    :param secure: Specify whether to prefer HTTPS or not (defaults to True).
+
+    :type test: bool
+    :param test: Specify whether a the current request is a trial run.
+                 This affects what gets logged and should be accompanied by
+                 the next 3 parameters (`test_message`, `api`, and `network`).
+
+    :type test_message: str
+    :param test_message: Specify a description of the test to log.
+                         This is ignored if the `test` parameter is False.
+
     :type api: callable
+    :param api: Specify API access point (for dependency injection).
+
+    :type network: callable
+    :param network: Specify a network access point (for dependency injection).
 
     :raises: TwythonError
 
-    :returns: GeoJSON Feature(s)
     :rtype: list
+    :returns: GeoJSON Feature(s)
+
+    .. seealso:: Visit https://dev.twitter.com/docs/using-search for tips on
+                 how to build queries for Twitter using the `keyword` parameter.
+                 More information may also be found at
+                 https://dev.twitter.com/docs/api/1.1/get/search/tweets.
 
     """
 

@@ -2,13 +2,16 @@
 
 """Make queries using OGRe directly.
 
-usage: ogre [--keys "<dict>"] [(-s|--sources) Twitter]
+usage: ogre [(-s|--sources) Twitter]
+    [--keys "<dict>"]
     [(-m|--media) (image|sound|text|video)]
     [(-k|--keyword) <str>]
     [(-q|--quantity) <int>]
     [(-l|--location) <longitude> <latitude> <radius> (km|mi)]
     [(-i|--interval) <since> <until>]
     [(-h|--help)]
+    [--insecure]
+    [--strict]
 
 See https://ogre.readthedocs.org/en/latest/ for more information.
 
@@ -27,43 +30,59 @@ def main():
     parser = argparse.ArgumentParser(description="OpenFusion GIS Retriever")
     parser.add_argument(
         "--keys",
-        help="API keys",
+        help="Specify API keys.",
         default=None
     )
     parser.add_argument(
         "-s", "--sources",
-        help="public APIs to get content from (required)",
+        help="Specify public APIs to get content from (required)." +
+             " 'Twitter' is currently the only supported source.",
         action="append",
         required=True
     )
     parser.add_argument(
         "-m", "--media",
-        help="content mediums to get",
+        help="Specify content mediums to fetch." +
+             " 'image', 'sound', 'text', and 'video' are supported.",
         default=None,
         action="append"
     )
     parser.add_argument(
         "-k", "--keyword",
-        help="term to search for",
+        help="Specify search criteria.",
         default=""
     )
     parser.add_argument(
         "-q", "--quantity",
-        help="quantity of results to fetch",
+        help="Specify a quota of results to fetch.",
         type=int,
         default=15
     )
     parser.add_argument(
         "-l", "--location",
-        help="latitude, longitude, radius, and unit",
+        help="Specify a place (latitude, longitude, radius, unit) to search." +
+             " 'km' and 'mi' are supported units.",
         default=None,
         nargs=4
     )
     parser.add_argument(
         "-i", "--interval",
-        help="earliest and latest moments (POSIX timestamps)",
+        help="Specify a period of time (earliest, latest) to search." +
+             " Each moment should be a POSIX timestamp.",
         default=None,
         nargs=2
+    )
+    parser.add_argument(
+        "--insecure",
+        help="Prefer HTTP.",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
+        "--strict",
+        help="Ensure resulting media is specifically requested.",
+        action="store_true",
+        default=False
     )
     args = parser.parse_args()
 
@@ -93,7 +112,9 @@ def main():
             keyword=args.keyword,
             quantity=args.quantity,
             location=args.location,
-            interval=args.interval
+            interval=args.interval,
+            secure=args.insecure,
+            strict_media=args.strict
         ),
         indent=4,
         separators=(",", ": ")

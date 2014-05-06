@@ -19,7 +19,8 @@ class OGRe:
     Since this is a library meant for developers,
     it didn't seem appropriate to use a configuration file.
     Also, importing the keys from the OS environment subjects them to data leak.
-    This way developers are responsible for keeping their keys safe.
+    This way developers are responsible for keeping their keys safe,
+    and they can use the environment if they choose.
     Twython, the Twitter API wrapper, also uses this scheme.
 
     :meth:`fetch` -- method for retrieving data from a public source
@@ -31,21 +32,19 @@ class OGRe:
     def __init__(self, keys):
         """Instantiate an OGRe.
 
-        :param keys: dictionaries containing API keys for public sources
         :type keys: dict
-
-        .. note:: "Twitter" is currently the only supported source.
+        :param keys: Specify dictionaries containing API keys for sources.
 
         Keys that a retriever object is instantiated with may be accessed later
         through the :attr:`keychain` attribute.
 
-        .. note:: There is also a :attr:`keyring` attribute which maintains
-                  a mapping of the lowercase version of each key to the
-                  casing of the passed key. This enables you to pass a key with
-                  a name stylized in the manner of your choosing (e.g. twitter,
-                  Twitter, tWiTtEr, etc.)
-
         :raises: ValueError
+
+        .. note:: A :attr:`keyring` attribute maintains a mapping of the
+                  lowercase version of each key to the casing of the passed key.
+                  This enables you to pass a key with a name stylized in the
+                  manner of your choosing
+                  (e.g. twitter, Twitter, tWiTtEr, etc.).
 
         """
         self.keyring = {}
@@ -70,42 +69,43 @@ class OGRe:
 
         """Get geotagged data from public APIs.
 
-        :param sources: public APIs to get content from (required)
+        .. seealso:: :meth:`ogre.validation.validate` describes the format each
+                     parameter must have.
+                     It is also a good idea to check the module of any sources
+                     that will be searched
+                     (e.g. :meth:`ogre.Twitter.twitter`)
+                     for extra constraints on parameters.
+
         :type sources: tuple
+        :param sources: Specify public APIs to get content from (required).
+                        "Twitter" is currently the only supported source.
 
-        .. note:: "Twitter" is currently the only supported source.
-
-        :param media: content mediums to get
         :type media: tuple
+        :param media: Specify content mediums to fetch.
+                      "image", "sound", "text", and "video" are supported.
 
-        .. note:: "image", "sound", "text", or "video" are supported mediums.
-
-        :param keyword: term to search for
         :type keyword: str
+        :param keyword: Specify search criteria.
 
-        :param quantity: number of results to fetch
         :type quantity: int
+        :param quantity: Specify a quota of results to fetch.
 
-        .. note:: The `quantity` parameter is satisfied on a best effort basis.
-                  Fewer results may be returned due to lack of availability.
-
-        :param location: latitude, longitude, radius, and unit
         :type location: tuple
+        :param location: Specify a place (latitude, longitude, radius, unit)
+                         to search.
 
-        .. note:: "km" or "mi" are supported units.
-
-        :param interval: earliest and latest moments (POSIX timestamps)
         :type interval: tuple
-
-        .. note:: The order of earliest/latest moments does not matter.
-
-        :param api: API access point (used for testing)
-        :type api: callable
+        :param interval: Specify a period of time (earliest, latest) to search.
 
         :raises: ValueError
 
-        :returns: GeoJSON FeatureCollection
         :rtype: dict
+        :returns: GeoJSON FeatureCollection
+
+        .. note:: Additional runtime modifiers may be specified to change
+                  the way results are retrieved.
+                  Runtime modifiers are relayed to each source module,
+                  and that is where they are documented.
 
         """
 
@@ -148,26 +148,30 @@ class OGRe:
            This method has been replaced by :meth:`fetch` which mirrors the
            interface used by individual source modules (e.g. :mod:`Twitter`).
 
-        :param sources: corresponds directly
         :type sources: tuple
+        :param sources: This parameter corresponds directly in :meth:`fetch`.
 
-        :param keyword: corresponds directly
         :type keyword: str
+        :param keyword: This parameter corresponds directly in :meth:`fetch`.
 
-        :param what: corresponds to `media`
         :type what: tuple
+        :param what: This parameter corresponds to `media` in :meth:`fetch`.
 
-        :param when: corresponds to `interval`
         :type when: tuple
+        :param when: This parameter corresponds to `interval` in :meth:`fetch`.
 
-        :param where: corresponds to `location`
         :type where: tuple
+        :param where: This parameter corresponds to `location` in :meth:`fetch`.
 
-        :param how_many: corresponds to `quantity`
         :type how_many: int
+        :param how_many: This parameter corresponds to `quantity` in
+                         :meth:`fetch`.
 
-        :returns: GeoJSON FeatureCollection
         :rtype: dict
+        :returns: GeoJSON FeatureCollection
+
+        .. note:: :meth:`get` is deprecated.
+                  :meth:`fetch` should be used instead.
 
         """
         return self.fetch(

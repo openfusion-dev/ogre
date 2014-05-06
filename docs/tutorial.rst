@@ -97,7 +97,7 @@ To find 50 image-less Tweets posted within 1km of Twitter headquarters, use::
      interval=None
  )
 
-.. note:: Either a keyword or location are required.
+.. note:: Either a keyword or location is required.
 
 To issue the same query directly from the command line, use the following:
 
@@ -122,6 +122,12 @@ Alternatively, environment variables are checked when keys are unspecified.
    $ export TWITTER_ACCESS_TOKEN='<Insert Twitter Access Token.>'
    $ python -m ogre --sources Twitter --media text \
    > --quantity 50 --location 37.781157 -122.398720 1 km
+
+.. seealso:: For a description of all available command line arguments, run:
+    
+    .. code-block:: bash
+
+       $ python -m ogre --help
 
 Results return as a single GeoJSON FeatureCollection.
 So, the example above could return::
