@@ -79,6 +79,11 @@ def main():
         default=False
     )
     parser.add_argument(
+        "--limit",
+        help="Specify a query limit.",
+        default=None
+    )
+    parser.add_argument(
         "--strict",
         help="Ensure resulting media is specifically requested.",
         action="store_true",
@@ -104,6 +109,8 @@ def main():
     if args.interval is not None:
         args.interval[0] = float(args.interval[0])
         args.interval[1] = float(args.interval[1])
+    if args.limit is not None:
+        args.limit = int(args.limit)
 
     print json.dumps(
         OGRe(args.keys).fetch(
@@ -113,6 +120,7 @@ def main():
             quantity=args.quantity,
             location=args.location,
             interval=args.interval,
+            query_limit=args.limit,
             secure=args.insecure,
             strict_media=args.strict
         ),

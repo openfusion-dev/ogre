@@ -308,6 +308,31 @@ class TwitterTest (unittest.TestCase):
                 keyword="test",
                 quantity=0,
                 test=True,
+                test_message="Query Limit Fail-Fast",
+                api=self.api["regular"],
+                network=self.network["regular"]
+            ),
+            []
+        )
+        self.assertEqual(self.api["regular"].call_count, 0)
+        self.assertEqual(
+            self.api["regular"]().get_application_rate_limit_status.call_count,
+            0
+        )
+        self.assertEqual(self.api["regular"]().search.call_count, 0)
+        self.assertEqual(self.network["regular"].call_count, 0)
+
+        # Allowing < 1 query fails fast.
+        self.api["regular"].reset_mock()
+        self.network["regular"].reset_mock()
+        self.assertEqual(
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                query_limit=0,
+                test=True,
                 test_message="Quantity Fail-Fast",
                 api=self.api["regular"],
                 network=self.network["regular"]

@@ -124,7 +124,7 @@ Alternatively, environment variables are checked when keys are unspecified.
    > --quantity 50 --location 37.781157 -122.398720 1 km
 
 .. seealso:: For a description of all available command line arguments, run:
-    
+
     .. code-block:: bash
 
        $ python -m ogre --help

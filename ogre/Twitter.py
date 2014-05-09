@@ -270,7 +270,11 @@ def twitter(
         log.setLevel(logging.INFO)
         log.info(qid+" Request: Twitter")
 
-    if not kinds or remaining < 1:
+    maximum_queries = kwargs.get("query_limit")
+    if maximum_queries is None:
+        maximum_queries = 450  # Twitter allows 450 queries every 15 minutes.
+
+    if not kinds or remaining < 1 or maximum_queries < 1:
         log.info(qid+" Success: No results were requested.")
         return []
 
@@ -278,21 +282,24 @@ def twitter(
         keychain["consumer_key"],
         access_token=keychain["access_token"]
     )
+
     limits = api.get_application_rate_limit_status()
-    maximum_queries = 450  # Twitter allows 450 queries every 15 minutes.
     try:
-        maximum_queries =\
-            int(limits["resources"]["search"]["/search/tweets"]["remaining"])
-        if maximum_queries < 1:
+        limit = int(
+            limits["resources"]["search"]["/search/tweets"]["remaining"]
+        )
+        if limit < 1:
             log.info(qid+" Failure: Queries are being limited.")
         else:
-            log.debug(qid+" Status: "+str(maximum_queries)+" queries remain.")
+            log.debug(qid+" Status: "+str(limit)+" queries remain.")
+        if limit < maximum_queries:
+            maximum_queries = limit
     except KeyError:
         log.warn(qid+" Unobtainable Rate Limit")
     total = remaining
 
     collection = []
-    for query in range(0, maximum_queries):
+    for query in range(maximum_queries):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
             results = api.search(
