@@ -1,11 +1,11 @@
-"""OGRe Query Handler
+"""
+OGRe Query Handler
 
 :class:`OGRe` -- retriever object template
 
 :meth:`OGRe.fetch` -- method for making a retriever fetch data
 
 :meth:`OGRe.get` -- alias of :meth:`OGRe.fetch`
-
 """
 
 from ogre.Twitter import twitter
@@ -13,7 +13,8 @@ from ogre.Twitter import twitter
 
 class OGRe:
 
-    """Create objects that contain API keys and API access points.
+    """
+    Create objects that contain API keys and API access points.
 
     OGRe was made a class to avoid requiring API keys with every API call.
     Since this is a library meant for developers,
@@ -26,11 +27,11 @@ class OGRe:
     :meth:`fetch` -- method for retrieving data from a public source
 
     :meth:`get` -- backwards-compatible alias of :meth:`fetch`
-
     """
 
     def __init__(self, keys):
-        """Instantiate an OGRe.
+        """
+        Instantiate an OGRe.
 
         :type keys: dict
         :param keys: Specify dictionaries containing API keys for sources.
@@ -45,7 +46,6 @@ class OGRe:
                   This enables you to pass a key with a name stylized in the
                   manner of your choosing
                   (e.g. twitter, Twitter, tWiTtEr, etc.).
-
         """
         self.keyring = {}
         for key, chain in keys.items():
@@ -67,7 +67,8 @@ class OGRe:
         **kwargs
     ):
 
-        """Get geotagged data from public APIs.
+        """
+        Get geotagged data from public APIs.
 
         .. seealso:: :meth:`ogre.validation.validate` describes the format each
                      parameter must have.
@@ -106,7 +107,6 @@ class OGRe:
                   the way results are retrieved.
                   Runtime modifiers are relayed to each source module,
                   and that is where they are documented.
-
         """
 
         source_map = {"twitter": twitter}
@@ -142,7 +142,8 @@ class OGRe:
         how_many=15,
         **kwargs
     ):
-        """Provide a backwards-compatible alias of :meth:`fetch`.
+        """
+        Provide a backwards-compatible alias of :meth:`fetch`.
 
         .. deprecated: 4.1.0
            This method has been replaced by :meth:`fetch` which mirrors the
@@ -172,7 +173,6 @@ class OGRe:
 
         .. note:: :meth:`get` is deprecated.
                   :meth:`fetch` should be used instead.
-
         """
         return self.fetch(
             sources=sources,

@@ -1,19 +1,20 @@
-"""OGRe Twitter Interface
+"""
+OGRe Twitter Interface
 
 :func:`twitter` : method for fetching data from Twitter
-
 """
 
 import base64
 import hashlib
 import logging
 import sys
+import time
 import urllib
 from datetime import datetime
-from time import time
 from twython import Twython
 from ogre.validation import sanitize
-from snowflake2time.snowflake import *
+from ogre.exceptions import OGReError, OGReLimitError
+from snowflake2time.snowflake import snowflake2utc, utc2snowflake
 
 
 def sanitize_twitter(
@@ -25,7 +26,8 @@ def sanitize_twitter(
         interval=None
 ):
 
-    """Validate and prepare parameters for use in Twitter data retrieval.
+    """
+    Validate and prepare parameters for use in Twitter data retrieval.
 
     .. seealso:: :meth:`ogre.validation.validate` describes the format each
                  parameter must have.
@@ -57,7 +59,6 @@ def sanitize_twitter(
 
     :rtype: tuple
     :returns: Each passed parameter is returned (in order) in the proper format.
-
     """
 
     clean_keys = {}
@@ -138,7 +139,8 @@ def twitter(
         **kwargs
 ):
 
-    """Fetch Tweets from the Twitter API.
+    """
+    Fetch Tweets from the Twitter API.
 
     .. seealso:: :meth:`sanitize_twitter` describes more about
                  the format each parameter must have.
@@ -217,7 +219,7 @@ def twitter(
     :type network: callable
     :param network: Specify a network access point (for dependency injection).
 
-    :raises: TwythonError
+    :raises: OGReError, OGReLimitError, TwythonError
 
     :rtype: list
     :returns: GeoJSON Feature(s)
@@ -226,7 +228,6 @@ def twitter(
                  how to build queries for Twitter using the `keyword` parameter.
                  More information may also be found at
                  https://dev.twitter.com/docs/api/1.1/get/search/tweets.
-
     """
 
     keychain, kinds, q, remaining, geocode, (since_id, max_id) = \
@@ -239,46 +240,45 @@ def twitter(
             interval=interval
         )
 
+    modifiers = {
+        "api": Twython,
+        "fail_hard": False,
+        "network": urllib.urlopen,
+        "query_limit": 450,  # Twitter allows 450 queries every 15 minutes.
+        "secure": True,
+        "strict_media": False
+    }
+    for modifier, _ in modifiers.items():
+        if kwargs.get(modifier) is not None:
+            modifiers[modifier] = kwargs[modifier]
+
     qid = hashlib.md5(
         str(time.time()) +
         str(q) +
         str(remaining) +
         str(geocode) +
         str(since_id) +
-        str(max_id)
+        str(max_id) +
+        str(kwargs)
     ).hexdigest()
-    logging.basicConfig(
-        filename="OGRe.log",
-        level=logging.ERROR,
-        format="%(asctime)s %(levelname)s:%(message)s",
-        datefmt="%Y/%m/%d %H:%M:%S %Z"
-    )
+
     log = logging.getLogger(__name__)
-    if kwargs.get("test", False):
-        log.setLevel(logging.DEBUG)
-        log.info(qid+" Request: Twitter TEST "+kwargs.get("test_message", ""))
-        log.debug(
-            qid+" Status:" +
-            " media("+str(media)+")" +
-            " keyword("+str(q)+")" +
-            " quantity("+str(remaining)+")" +
-            " location("+str(geocode)+")" +
-            " interval("+str(since_id)+","+str(max_id)+")" +
-            " kwargs("+str(kwargs)+")"
-        )
-    else:
-        log.setLevel(logging.INFO)
-        log.info(qid+" Request: Twitter")
+    log.info(qid+" Request: Twitter")
+    log.debug(
+        qid+" Status:" +
+        " media("+str(media)+")" +
+        " keyword("+str(q)+")" +
+        " quantity("+str(remaining)+")" +
+        " location("+str(geocode)+")" +
+        " interval("+str(since_id)+","+str(max_id)+")" +
+        " kwargs("+str(kwargs)+")"
+    )
 
-    maximum_queries = kwargs.get("query_limit")
-    if maximum_queries is None:
-        maximum_queries = 450  # Twitter allows 450 queries every 15 minutes.
-
-    if not kinds or remaining < 1 or maximum_queries < 1:
+    if not kinds or remaining < 1 or modifiers["query_limit"] < 1:
         log.info(qid+" Success: No results were requested.")
         return []
 
-    api = kwargs.get("api", Twython)(
+    api = modifiers["api"](
         keychain["consumer_key"],
         access_token=keychain["access_token"]
     )
@@ -288,18 +288,28 @@ def twitter(
         limit = int(
             limits["resources"]["search"]["/search/tweets"]["remaining"]
         )
+        reset = int(
+            limits["resources"]["search"]["/search/tweets"]["reset"]
+        )
         if limit < 1:
-            log.info(qid+" Failure: Queries are being limited.")
+            message = "Queries are being limited."
+            log.info(qid+" Failure: "+message)
+            if modifiers["fail_hard"]:
+                raise OGReLimitError(
+                    source="Twitter",
+                    message=message,
+                    reset=reset
+                )
         else:
             log.debug(qid+" Status: "+str(limit)+" queries remain.")
-        if limit < maximum_queries:
-            maximum_queries = limit
+        if limit < modifiers["query_limit"]:
+            modifiers["query_limit"] = limit
     except KeyError:
         log.warn(qid+" Unobtainable Rate Limit")
     total = remaining
 
     collection = []
-    for query in range(maximum_queries):
+    for query in range(modifiers["query_limit"]):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
             results = api.search(
@@ -318,12 +328,15 @@ def twitter(
             )
             raise
         if results.get("statuses") is None:
+            message = "The request is too complex."
             log.info(
                 qid+" Failure: " +
                 str(query+1)+" queries produced " +
                 str(len(collection))+" results. " +
-                "The request is too complex."
+                message
             )
+            if modifiers["fail_hard"]:
+                raise OGReError(source="Twitter", message=message)
             break
         for tweet in results["statuses"]:
             if tweet.get("coordinates") is None or tweet.get("id") is None:
@@ -349,7 +362,7 @@ def twitter(
                 if tweet.get("text") is not None:
                     feature["properties"]["text"] = tweet["text"]
             if "image" in kinds:
-                if not kwargs.get("strict_media", False):
+                if not modifiers["strict_media"]:
                     if tweet.get("text") is not None:
                         feature["properties"]["text"] = tweet["text"]
                 if tweet.get("entities", {}).get("media") is not None:
@@ -357,15 +370,12 @@ def twitter(
                         if entity.get("type") is not None:
                             if entity["type"].lower() == "photo":
                                 media_url = "media_url_https"
-                                if not kwargs.get("secure", True):
+                                if not modifiers["secure"]:
                                     media_url = "media_url"
                                 if entity.get(media_url) is not None:
                                     feature["properties"]["image"] =\
                                         base64.b64encode(
-                                            kwargs.get(
-                                                "network",
-                                                urllib.urlopen
-                                            )(
+                                            modifiers["network"](
                                                 entity[media_url]
                                             ).read()
                                         )
@@ -398,7 +408,7 @@ def twitter(
             .split("max_id=")[1]
             .split("&")[0]
         )
-        if query+1 >= maximum_queries:
+        if query+1 >= modifiers["query_limit"]:
             outcome = "Success" if len(collection) > 0 else "Failure"
             log.info(
                 qid+" "+outcome+": " +

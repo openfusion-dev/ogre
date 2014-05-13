@@ -1,4 +1,5 @@
-"""OGRe Twitter Interface Tests
+"""
+OGRe Twitter Interface Tests
 
 :class:`TwitterTest` -- Twitter interface test template
 
@@ -7,12 +8,12 @@
 :meth:`TwitterTest.test_sanitize_twitter` -- Twitter parameter preparation tests
 
 :meth:`TwitterTest.test_twitter` -- Twitter API query tests
-
 """
 
 import base64
 import copy
 import json
+import logging
 import os
 import unittest
 from datetime import datetime
@@ -21,15 +22,17 @@ from StringIO import StringIO
 from twython import TwythonError
 from snowflake2time import snowflake
 from ogre import OGRe
+from ogre.exceptions import OGReError, OGReLimitError
 from ogre.Twitter import *
 
 
-def twitter_limits(remaining):
+def twitter_limits(remaining, reset):
     return {
         "resources": {
             "search": {
                 "/search/tweets": {
-                    "remaining": remaining
+                    "remaining": remaining,
+                    "reset": reset
                 }
             }
         }
@@ -38,19 +41,20 @@ def twitter_limits(remaining):
 
 class TwitterTest (unittest.TestCase):
 
-    """Create objects that test the OGRe module.
+    """
+    Create objects that test the OGRe module.
 
     :meth:`TwitterTest.setUp` -- retriever and Twython Mock initialization
 
     :meth:`TwitterTest.test_sanitize_twitter` -- parameter cleansing tests
 
     :meth:`TwitterTest.test_twitter` -- API access and results-packaging tests
-
     """
 
     def setUp(self):
 
-        """Prepare to run tests on the Twitter interface.
+        """
+        Prepare to run tests on the Twitter interface.
 
         Since OGRe requires API keys to run and they cannot be stored
         conveniently, this test module retrieves them from the OS;
@@ -61,8 +65,10 @@ class TwitterTest (unittest.TestCase):
         (although they may be necessary in the future).
         Predictable results are stored in the data directory to be read
         during these tests.
-
         """
+
+        self.log = logging.getLogger(__name__)
+        self.log.debug("Initializing a TwitterTest...")
 
         self.retriever = OGRe(
             keys={
@@ -74,82 +80,106 @@ class TwitterTest (unittest.TestCase):
         )
         with open("ogre/test/data/Twitter-response-example.json") as tweets:
             self.tweets = json.load(tweets)
-
-        self.api = {
-            "regular": MagicMock(),
-            "limited": MagicMock(),
-            "Twython": MagicMock(),
-            "complex": MagicMock(),
-            "single": MagicMock()
-        }
-
-        self.api["regular"]().get_application_rate_limit_status.return_value =\
-            twitter_limits(2)
-        self.api["regular"]().search.return_value = copy.deepcopy(self.tweets)
-
-        self.api["limited"]().get_application_rate_limit_status.return_value =\
-            twitter_limits(0)
-        self.api["limited"]().search.return_value = {
-            "errors": [
-                {
-                    "code": 88,
-                    "message": "Rate limit exceeded"
+        depleted_tweets = copy.deepcopy(self.tweets)
+        depleted_tweets["search_metadata"].pop("next_results", None)
+        limit_normal = twitter_limits(2, 1234567890)
+        dependency_injections = {
+            "regular": {
+                "api": {
+                    "limit": limit_normal,
+                    "return": copy.deepcopy(self.tweets),
+                    "effect": None
+                },
+                "network": {
+                    "return": None,
+                    "effect": lambda _: StringIO("test_image")
                 }
-            ]
+            },
+            "limited": {
+                "api": {
+                    "limit": twitter_limits(0, 1234567890),
+                    "return": {
+                        "errors": [
+                            {
+                                "code": 88,
+                                "message": "Rate limit exceeded"
+                            }
+                        ]
+                    },
+                    "effect": None
+                },
+                "network": {
+                    "return": None,
+                    "effect": Exception()
+                }
+            },
+            "imitate": {
+                "api": {
+                    "limit": limit_normal,
+                    "return": None,
+                    "effect": TwythonError("TwythonError")
+                },
+                "network": {
+                    "return": None,
+                    "effect": Exception()
+                }
+            },
+            "complex": {
+                "api": {
+                    "limit": limit_normal,
+                    "return": {
+                        "error": "Sorry, your query is too complex." +
+                                 " Please reduce complexity and try again."
+                    },
+                    "effect": None
+                },
+                "network": {
+                    "return": None,
+                    "effect": Exception()
+                }
+            },
+            "deplete": {
+                "api": {
+                    "limit": twitter_limits(1, 1234567890),
+                    "return": copy.deepcopy(depleted_tweets),
+                    "effect": None
+                },
+                "network": {
+                    "return": StringIO("test_image"),
+                    "effect": None
+                }
+            }
         }
 
-        self.api["Twython"]().get_application_rate_limit_status.return_value =\
-            self.api["regular"]().get_application_rate_limit_status.return_value
-        self.api["Twython"]().search.side_effect = TwythonError("test_error")
-
-        self.api["complex"]().get_application_rate_limit_status.return_value =\
-            self.api["regular"]().get_application_rate_limit_status.return_value
-        self.api["complex"]().search.return_value = {
-            "error": "Sorry, your query is too complex." +
-                     " Please reduce complexity and try again."
+        self.injectors = {
+            "api": {},
+            "network": {}
         }
-
-        self.api["single"]().get_application_rate_limit_status.return_value =\
-            twitter_limits(1)
-        self.api["single"]().search.return_value = copy.deepcopy(self.tweets)
-        self.api["single"]().search.return_value["search_metadata"].pop(
-            "next_results",
-            None
-        )
-
-        self.api["regular"].reset_mock()
-        self.api["limited"].reset_mock()
-        self.api["Twython"].reset_mock()
-        self.api["complex"].reset_mock()
-        self.api["single"].reset_mock()
-
-        self.network = {
-            "regular": MagicMock(),
-            "limited": MagicMock(),
-            "Twython": MagicMock(),
-            "complex": MagicMock(),
-            "single": MagicMock()
-        }
-        self.network["regular"].side_effect = lambda _: StringIO("test_image")
-        self.network["limited"].side_effect = Exception()
-        self.network["Twython"].side_effect = Exception()
-        self.network["complex"].side_effect = Exception()
-        self.network["single"].return_value = StringIO("test_image")
-        self.network["regular"].reset_mock()
-        self.network["limited"].reset_mock()
-        self.network["Twython"].reset_mock()
-        self.network["complex"].reset_mock()
-        self.network["single"].reset_mock()
+        for name, dependencies in dependency_injections.items():
+            api = MagicMock()
+            api().get_application_rate_limit_status.return_value =\
+                dependencies["api"]["limit"]
+            api().search.return_value = dependencies["api"]["return"]
+            api().search.side_effect = dependencies["api"]["effect"]
+            api.reset_mock()
+            self.injectors["api"][name] = api
+            network = MagicMock()
+            network.return_value = dependencies["network"]["return"]
+            network.side_effect = dependencies["network"]["effect"]
+            network.reset_mock()
+            self.injectors["network"][name] = network
 
     def test_sanitize_twitter(self):
 
-        """Test the Twitter interface parameter sanitizer.
+        """
+        Test the Twitter interface parameter sanitizer.
 
         These tests should verify that malformed or invalid data is detected
         before being sent to Twitter. They should also test that valid data is
         formatted correctly for use by Twython.
-
         """
+
+        self.log.debug("Testing the Twitter sanitizer...")
 
         with self.assertRaises(ValueError):
             sanitize_twitter(keys={})
@@ -258,7 +288,8 @@ class TwitterTest (unittest.TestCase):
 
     def test_twitter(self):
 
-        """Test OGRe's access point to the Twitter API.
+        """
+        Test OGRe's access point to the Twitter API.
 
         These tests should make sure all input is validated correctly,
         and they should make sure that any relevant Twitter data is extracted
@@ -269,12 +300,14 @@ class TwitterTest (unittest.TestCase):
         If any other geotagged data is included, this test will fail;
         however, it is a good idea to include non-geotagged Tweets
         to ensure that OGRe omits them in the returned results.
-
         """
 
-        # Requesting no media fails fast.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        # Requesting no media returns empty.
+        self.log.debug("Testing empty media...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -282,24 +315,22 @@ class TwitterTest (unittest.TestCase):
                 ],
                 media=(),
                 keyword="test",
-                test=True,
-                test_message="Media Fail-Fast",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             []
         )
-        self.assertEqual(self.api["regular"].call_count, 0)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            0
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 0)
-        self.assertEqual(self.network["regular"].call_count, 0)
+        self.assertEqual(0, api.call_count)
+        self.assertEqual(0, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
-        # Requesting < 1 result fails fast.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        # Requesting < 1 result returns empty.
+        self.log.debug("Testing zero quantity...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -307,24 +338,22 @@ class TwitterTest (unittest.TestCase):
                 ],
                 keyword="test",
                 quantity=0,
-                test=True,
-                test_message="Query Limit Fail-Fast",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             []
         )
-        self.assertEqual(self.api["regular"].call_count, 0)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            0
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 0)
-        self.assertEqual(self.network["regular"].call_count, 0)
+        self.assertEqual(0, api.call_count)
+        self.assertEqual(0, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
-        # Allowing < 1 query fails fast.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        # Allowing < 1 query returns empty.
+        self.log.debug("Testing zero query limit...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -334,25 +363,25 @@ class TwitterTest (unittest.TestCase):
                 query_limit=0,
                 test=True,
                 test_message="Quantity Fail-Fast",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             []
         )
-        self.assertEqual(self.api["regular"].call_count, 0)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            0
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 0)
-        self.assertEqual(self.network["regular"].call_count, 0)
+        self.assertEqual(0, api.call_count)
+        self.assertEqual(0, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
         # The constructor is called appropriately once per request.
         # The rate limit is retrieved once per request.
         # The API is queried once per lap around the loop.
         # HTTPS is used by default to retrieve images.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        self.log.debug("Testing appropriate API use and HTTPS by default...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         twitter(
             keys=self.retriever.keychain[
                 self.retriever.keyring["twitter"]
@@ -362,12 +391,10 @@ class TwitterTest (unittest.TestCase):
             quantity=2,
             location=(4, 3, 2, "km"),
             interval=(1, 0),
-            test=True,
-            test_message="Appropriate API Use and HTTPS by Default",
-            api=self.api["regular"],
-            network=self.network["regular"]
+            api=api,
+            network=network
         )
-        self.api["regular"].assert_called_once_with(
+        api.assert_called_once_with(
             self.retriever.keychain[
                 self.retriever.keyring["twitter"]
             ]["consumer_key"],
@@ -375,96 +402,136 @@ class TwitterTest (unittest.TestCase):
                 self.retriever.keyring["twitter"]
             ]["access_token"]
         )
-        self.api["regular"]().get_application_rate_limit_status\
+        api().get_application_rate_limit_status\
             .assert_called_once_with()
-        self.api["regular"]().search.assert_called_once_with(
+        api().search.assert_called_once_with(
             q="test",
             count=2,
             geocode="4.0,3.0,2.0km",
             since_id=-5405765689543753728,
             max_id=-5405765685349449728
         )
-        self.network["regular"].assert_called_once_with(
+        network.assert_called_once_with(
             self.tweets["statuses"][0]
             ["entities"]["media"][0]["media_url_https"]
         )
 
-        # The rate limit is applied appropriately.
-        self.api["limited"].reset_mock()
-        self.network["limited"].reset_mock()
+        # The rate limit is obeyed appropriately.
+        self.log.debug("Testing rate limit obedience...")
+        api = self.injectors["api"]["limited"]
+        network = self.injectors["network"]["limited"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
                     self.retriever.keyring["twitter"]
                 ],
                 keyword="test",
-                test=True,
-                test_message="Rate Limit Application",
-                api=self.api["limited"],
-                network=self.network["limited"]
+                api=api,
+                network=network
             ),
             []
         )
-        self.assertEqual(self.api["limited"].call_count, 1)
-        self.assertEqual(
-            self.api["limited"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["limited"]().search.call_count, 0)
-        self.assertEqual(self.network["limited"].call_count, 0)
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
+
+        # Failing hard raises exceptions instead of returning empty.
+        self.log.debug("Testing hard failure...")
+        api = self.injectors["api"]["limited"]
+        network = self.injectors["network"]["limited"]
+        api.reset_mock()
+        network.reset_mock()
+        with self.assertRaises(OGReLimitError):
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                fail_hard=True,
+                api=api,
+                network=network
+            )
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
         # TwythonErrors are relayed correctly.
-        self.api["Twython"].reset_mock()
-        self.network["Twython"].reset_mock()
+        self.log.debug("Testing TwythonError relay...")
+        api = self.injectors["api"]["imitate"]
+        network = self.injectors["network"]["imitate"]
+        api.reset_mock()
+        network.reset_mock()
         with self.assertRaises(TwythonError):
             twitter(
                 keys=self.retriever.keychain[
                     self.retriever.keyring["twitter"]
                 ],
                 keyword="test",
-                test=True,
-                test_message="TwythonError Relay",
-                api=self.api["Twython"],
-                network=self.network["Twython"]
+                api=api,
+                network=network
             )
-        self.assertEqual(self.api["Twython"].call_count, 1)
-        self.assertEqual(
-            self.api["Twython"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["Twython"]().search.call_count, 1)
-        self.assertEqual(self.network["Twython"].call_count, 0)
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
         # No "statuses" key in Twitter response causes a break.
-        self.api["complex"].reset_mock()
-        self.network["complex"].reset_mock()
+        self.log.debug("Testing empty response...")
+        api = self.injectors["api"]["complex"]
+        network = self.injectors["network"]["complex"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
                     self.retriever.keyring["twitter"]
                 ],
                 keyword="test",
-                test=True,
-                test_message="Empty Response",
-                api=self.api["complex"],
-                network=self.network["complex"]
+                api=api,
+                network=network
             ),
             []
         )
-        self.assertEqual(self.api["complex"].call_count, 1)
-        self.assertEqual(
-            self.api["complex"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["complex"]().search.call_count, 1)
-        self.assertEqual(self.network["complex"].call_count, 0)
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(0, network.call_count)
+
+        # No "statuses" key in fail_hard Twitter response causes an exception.
+        self.log.debug("Testing empty response with hard failure...")
+        api = self.injectors["api"]["complex"]
+        network = self.injectors["network"]["complex"]
+        api.reset_mock()
+        network.reset_mock()
+        with self.assertRaises(OGReError):
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                fail_hard=True,
+                api=api,
+                network=network
+            )
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(0, network.call_count)
+
 
         # Ungeotagged or untimestamped results are omitted.
         # "Text" media is returned when requested.
         # "Image" media is not returned unless requested.
         # No remaining pages causes a break.
-        self.api["single"].reset_mock()
-        self.network["single"].reset_mock()
+        self.log.debug("Testing filtering and page depletion...")
+        api = self.injectors["api"]["deplete"]
+        network = self.injectors["network"]["deplete"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -475,10 +542,8 @@ class TwitterTest (unittest.TestCase):
                 quantity=4,
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
-                test=True,
-                test_message="Filtering and Out of Pages",
-                api=self.api["single"],
-                network=self.network["single"]
+                api=api,
+                network=network
             ),
             [
                 {
@@ -525,20 +590,20 @@ class TwitterTest (unittest.TestCase):
                 }
             ]
         )
-        self.assertEqual(self.api["single"].call_count, 1)
-        self.assertEqual(
-            self.api["single"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["single"]().search.call_count, 1)
-        self.assertEqual(self.network["single"].call_count, 0)
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(0, network.call_count)
 
         # "Text" media is returned when not requested.
         # "Image" media is returned when requested.
         # Remaining results are calculated correctly.
         # Setting "secure" kwarg to False causes HTTP retrieval.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        self.log.debug("Testing filtering, counting, and HTTP on demand...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -550,10 +615,8 @@ class TwitterTest (unittest.TestCase):
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
                 secure=False,
-                test=True,
-                test_message="Filtering, Counting, and HTTP by Request",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             [
                 {
@@ -601,23 +664,22 @@ class TwitterTest (unittest.TestCase):
                 }
             ]
         )
-        self.assertEqual(self.api["regular"].call_count, 1)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 1)
-        self.network["regular"].assert_called_once_with(
-            self.tweets["statuses"][0]
-            ["entities"]["media"][0]["media_url"]
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        network.assert_called_once_with(
+            self.tweets["statuses"][0]["entities"]["media"][0]["media_url"]
         )
 
         # Setting "strict_media" kwarg to True returns only requested media.
         # Parameters for paging are computed correctly.
         # Paging is not used unless it is needed.
         # Duplicates are not filtered.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        self.log.debug("Testing strict media, paging, and duplication...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -629,10 +691,8 @@ class TwitterTest (unittest.TestCase):
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
                 strict_media=True,
-                test=True,
-                test_message="Strict Media, Paging, and Duplication",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             [
                 {
@@ -679,31 +739,31 @@ class TwitterTest (unittest.TestCase):
                 }
             ]
         )
-        self.assertEqual(self.api["regular"].call_count, 1)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 2)
-        self.api["regular"]().search.assert_has_any_call(
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(2, api().search.call_count)
+        api().search.assert_has_any_call(
             q="test pic.twitter.com",
             count=2,
             geocode="0.0,0.1,2.0km",
             since_id=-5405765676960841728,
             max_id=-5405765672766537728
         )
-        self.api["regular"]().search.assert_has_any_call(
+        api().search.assert_has_any_call(
             q="test pic.twitter.com",
             count=1,
             geocode="0.0,0.1,2.0km",
             since_id=-5405765676960841728,
             max_id=445633721891164159
         )
-        self.assertEqual(self.network["regular"].call_count, 2)
+        self.assertEqual(2, network.call_count)
 
-        # Results are packages correctly.
-        self.api["regular"].reset_mock()
-        self.network["regular"].reset_mock()
+        # Results are packaged correctly.
+        self.log.debug("Testing packaging...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        api.reset_mock()
+        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -714,10 +774,8 @@ class TwitterTest (unittest.TestCase):
                 quantity=2,
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
-                test=True,
-                test_message="Packaging",
-                api=self.api["regular"],
-                network=self.network["regular"]
+                api=api,
+                network=network
             ),
             [
                 {
@@ -765,13 +823,10 @@ class TwitterTest (unittest.TestCase):
                 }
             ]
         )
-        self.assertEqual(self.api["regular"].call_count, 1)
-        self.assertEqual(
-            self.api["regular"]().get_application_rate_limit_status.call_count,
-            1
-        )
-        self.assertEqual(self.api["regular"]().search.call_count, 1)
-        self.assertEqual(self.network["regular"].call_count, 1)
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(1, network.call_count)
 
 
 if __name__ == "__main__":

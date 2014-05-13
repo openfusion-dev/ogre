@@ -1,34 +1,42 @@
-"""OGRe Parameter Validator Tests
+"""
+OGRe Parameter Validator Tests
 
 :class:`ValidationTest` -- parameter validator test template
 
 :meth:`ValidationTest.test_validate` -- error detection tests
 
 :meth:`ValidationTest.test_sanitize` -- data cleansing verification tests
-
 """
 
+import logging
 import unittest
 from ogre.validation import *
 
 
 class ValidationTest (unittest.TestCase):
 
-    """Create objects that test the OGRe validation module.
+    """
+    Create objects that test the OGRe validation module.
 
     :meth:`test_validate` -- tests for detecting input errors
 
     :meth:`test_sanitize` -- tests of parameter format preparation
-
     """
+
+    def setUp(self):
+        """Prepare to run tests on the OGRe validation module."""
+        self.log = logging.getLogger(__name__)
+        self.log.debug("Initializing a ValidationTest...")
 
     def test_validate(self):
 
-        """Test input validation.
+        """
+        Test input validation.
 
         These tests should make sure all input is validated correctly.
-
         """
+
+        self.log.debug("Testing the OGRe validator...")
 
         with self.assertRaises(AttributeError):
             validate(media=(0,))
@@ -75,11 +83,13 @@ class ValidationTest (unittest.TestCase):
 
     def test_sanitize(self):
 
-        """Test input sanitation.
+        """
+        Test input sanitation.
 
         These tests should make sure all input is sanitized correctly.
-
         """
+
+        self.log.debug("Testing the OGRe sanitizer...")
 
         self.assertEqual(
             sanitize(media=()),

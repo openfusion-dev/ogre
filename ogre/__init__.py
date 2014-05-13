@@ -1,4 +1,5 @@
-"""OpenFusion GIS Retriever
+"""
+OpenFusion GIS Retriever
 
 `ogre.test` -- subpackage for testing OGRe
 
@@ -7,9 +8,8 @@
 :mod:`ogre.Twitter` -- module for getting data from Twitter
 
 :mod:`ogre.validation` -- module for parameter validation and sanitation
-
 """
 
 from ogre.api import OGRe
 
-__version__ = "4.4.0"
+__version__ = "4.5.0"

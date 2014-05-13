@@ -1,9 +1,9 @@
-"""OGRe Parameter Validator
+"""
+OGRe Parameter Validator
 
 :func:`validate` -- check OGRe parameters for errors
 
 :func:`sanitize` -- validate and cleanse OGRe parameters
-
 """
 
 
@@ -15,7 +15,8 @@ def validate(
     interval=None,
 ):
 
-    """Check common interface parameters for errors and validity.
+    """
+    Check common interface parameters for errors and validity.
 
     :type media: tuple
     :param media: "image", "sound", "text", and "video" are valid mediums.
@@ -38,7 +39,6 @@ def validate(
                      the lower number will be considered earliest.
 
     :raises: ValueError
-
     """
 
     if media is not None:

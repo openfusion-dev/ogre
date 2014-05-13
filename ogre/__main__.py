@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-"""Make queries using OGRe directly.
+"""
+Make queries using OGRe directly.
 
 usage: ogre [(-s|--sources) Twitter]
     [--keys "<dict>"]
@@ -14,11 +15,11 @@ usage: ogre [(-s|--sources) Twitter]
     [--strict]
 
 See https://ogre.readthedocs.org/en/latest/ for more information.
-
 """
 
 import argparse
 import json
+import logging
 import os
 from ogre import OGRe
 
@@ -73,6 +74,12 @@ def main():
         nargs=2
     )
     parser.add_argument(
+        "--hard",
+        help="Fail hard (Raise exceptions instead of returning empty).",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
         "--insecure",
         help="Prefer HTTP.",
         action="store_true",
@@ -81,6 +88,11 @@ def main():
     parser.add_argument(
         "--limit",
         help="Specify a query limit.",
+        default=None
+    )
+    parser.add_argument(
+        "--log",
+        help="Specify a log level.",
         default=None
     )
     parser.add_argument(
@@ -111,6 +123,16 @@ def main():
         args.interval[1] = float(args.interval[1])
     if args.limit is not None:
         args.limit = int(args.limit)
+    if args.log is not None:
+        args.log = getattr(logging, args.log.upper())
+    else:
+        args.log = logging.WARN
+
+    logging.basicConfig(
+        level=args.log,
+        format="%(asctime)s.%(msecs)03d %(name)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
     print json.dumps(
         OGRe(args.keys).fetch(
@@ -120,6 +142,7 @@ def main():
             quantity=args.quantity,
             location=args.location,
             interval=args.interval,
+            fail_hard=args.hard,
             query_limit=args.limit,
             secure=args.insecure,
             strict_media=args.strict

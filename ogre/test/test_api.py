@@ -1,4 +1,5 @@
-"""OGRe Query Handler Tests
+"""
+OGRe Query Handler Tests
 
 :class:`OGReConstructorTest` -- retriever constructor test template
 
@@ -9,10 +10,10 @@
 :meth:`OGReTest.setUp` -- query handler test preparation
 
 :meth:`OGReTest.test_fetch` -- query handler tests
-
 """
 
 import json
+import logging
 import os
 import unittest
 from mock import MagicMock
@@ -23,23 +24,30 @@ from ogre.Twitter import twitter
 
 class OGReConstructorTest (unittest.TestCase):
 
-    """Create objects that test the OGRe constructor.
+    """
+    Create objects that test the OGRe constructor.
 
     A separate class is required here because the constructor is used in the
     setUp method of future TestCase classes.
 
     :meth:`test___init__` -- retriever creation and key-handling tests
-
     """
+
+    def setUp(self):
+        """Prepare to test the OGRe constructor."""
+        self.log = logging.getLogger(__name__)
+        self.log.debug("Initializing an OGReConstructorTest...")
 
     def test___init__(self):
 
-        """Test key handling during OGRe construction.
+        """
+        Test key handling during OGRe construction.
 
         These tests should ensure that only valid keys are accepted
         and that the keyring is properly created.
-
         """
+
+        self.log.debug("Testing the OGRe constructor...")
 
         with self.assertRaises(AttributeError):
             OGRe(keys={0: None})
@@ -76,17 +84,18 @@ class OGReConstructorTest (unittest.TestCase):
 
 class OGReTest (unittest.TestCase):
 
-    """Create objects that test the OGRe module.
+    """
+    Create objects that test the OGRe module.
 
     :meth:`setUp` -- query handler test preparation (always runs first)
 
     :meth:`test_fetch` -- query handling and packaging tests
-
     """
 
     def setUp(self):
 
-        """Prepare to run tests on OGRe.
+        """
+        Prepare to run tests on OGRe.
 
         Since OGRe requires API keys to run and they cannot be stored
         conveniently, this test module retrieves them from the environment;
@@ -99,8 +108,10 @@ class OGReTest (unittest.TestCase):
         during these tests.
         The network is also injected to prevent testing from depending on
         and internet connection or sources being up.
-
         """
+
+        self.log = logging.getLogger(__name__)
+        self.log.debug("Initializing an OGReTest...")
 
         self.retriever = OGRe(
             keys={
@@ -116,7 +127,8 @@ class OGReTest (unittest.TestCase):
             "resources": {
                 "search": {
                     "/search/tweets": {
-                        "remaining": 2
+                        "remaining": 2,
+                        "reset": 1234567890
                     }
                 }
             }
@@ -124,21 +136,22 @@ class OGReTest (unittest.TestCase):
         with open("ogre/test/data/Twitter-response-example.json") as tweets:
             self.api().search.return_value = json.load(tweets)
         self.api.reset_mock()
-
         self.network = MagicMock()
         self.network.side_effect = lambda _: StringIO("test_image")
         self.network.reset_mock()
 
     def test_fetch(self):
 
-        """Test the main entry point to OGRe.
+        """
+        Test the main entry point to OGRe.
 
         These tests should ensure that the retrieved results are packaged
         in a GeoJSON FeatureCollection object properly.
         They should also verify that empty requests fail fast
         (e.g. quantity < 1 or media == []).
-
         """
+
+        self.log.debug("Testing the main entry point to OGRe...")
 
         with self.assertRaises(ValueError):
             self.retriever.get(("invalid",),)
