@@ -95,6 +95,4 @@ setup(
             'ogre = ogre.__main__:main'
         ]
     },
-    
-    test_suite="ogre/test",
 )
