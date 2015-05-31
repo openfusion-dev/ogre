@@ -13,4 +13,3 @@ https://ogre.readthedocs.org/
 
 .. |codeship| image:: https://codeship.com/projects/84361750-e879-0132-1779-62885e5c211b/status?branch=master
     :alt: Codeship Build Status
-    :target: https://codeship.com/projects/84361750-e879-0132-1779-62885e5c211b
