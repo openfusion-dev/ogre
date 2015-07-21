@@ -12,7 +12,7 @@ Documentation
 https://ogre.readthedocs.org/
 
 
-.. |codeship| image:: https://img.shields.io/codeship/f753ffc0-0912-0133-16ea-4a4c0ecd07c2/master.svg
+.. |codeship| image:: https://img.shields.io/codeship/84361750-e879-0132-1779-62885e5c211b/master.svg
     :alt: Build Status
 .. |pypi| image:: https://img.shields.io/pypi/v/ogre.svg
     :alt: PyPI Version
