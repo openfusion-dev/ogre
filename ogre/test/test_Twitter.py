@@ -49,6 +49,19 @@ class TwitterTest (unittest.TestCase):
     :meth:`TwitterTest.test_sanitize_twitter` -- parameter cleansing tests
 
     :meth:`TwitterTest.test_twitter` -- API access and results-packaging tests
+
+
+    Test OGRe's access point to the Twitter API.
+
+    These tests should make sure all input is validated correctly,
+    and they should make sure that any relevant Twitter data is extracted
+    and packaged in GeoJSON format correctly.
+
+    The first two Tweets in the example Twitter response data
+    must be geotagged, and the first one must an image entity attached.
+    If any other geotagged data is included, this test will fail;
+    however, it is a good idea to include non-geotagged Tweets
+    to ensure that OGRe omits them in the returned results.
     """
 
     def setUp(self):
@@ -286,28 +299,11 @@ class TwitterTest (unittest.TestCase):
             )
         )
 
-    def test_twitter(self):
-
-        """
-        Test OGRe's access point to the Twitter API.
-
-        These tests should make sure all input is validated correctly,
-        and they should make sure that any relevant Twitter data is extracted
-        and packaged in GeoJSON format correctly.
-
-        The first two Tweets in the example Twitter response data
-        must be geotagged, and the first one must an image entity attached.
-        If any other geotagged data is included, this test will fail;
-        however, it is a good idea to include non-geotagged Tweets
-        to ensure that OGRe omits them in the returned results.
-        """
-
-        # Requesting no media returns empty.
+    def test_empty_media(self):
+        # Requesting no media returns empty without accessing the Twitter API.
         self.log.debug("Testing empty media...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -325,12 +321,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-        # Requesting < 1 result returns empty.
+    def test_zero_quantity(self):
+        # Requesting < 1 result returns empty without accessing the Twitter API.
         self.log.debug("Testing zero quantity...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -348,12 +343,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-        # Allowing < 1 query returns empty.
+    def test_zero_query_limit(self):
+        # Allowing < 1 query returns empty without accessing the Twitter API.
         self.log.debug("Testing zero query limit...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -373,15 +367,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_api_invocation(self):
         # The constructor is called appropriately once per request.
-        # The rate limit is retrieved once per request.
-        # The API is queried once per lap around the loop.
-        # HTTPS is used by default to retrieve images.
-        self.log.debug("Testing appropriate API use and HTTPS by default...")
+        self.log.debug("Testing API invocation...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         twitter(
             keys=self.retriever.keychain[
                 self.retriever.keyring["twitter"]
@@ -402,8 +392,43 @@ class TwitterTest (unittest.TestCase):
                 self.retriever.keyring["twitter"]
             ]["access_token"]
         )
-        api().get_application_rate_limit_status\
-            .assert_called_once_with()
+
+    def test_rate_limit_retrieval(self):
+        # The rate limit is retrieved once per request.
+        self.log.debug("Testing rate limit retrieval...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        twitter(
+            keys=self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ],
+            media=("image", "text"),
+            keyword="test",
+            quantity=2,
+            location=(4, 3, 2, "km"),
+            interval=(1, 0),
+            api=api,
+            network=network
+        )
+        api().get_application_rate_limit_status.assert_called_once_with()
+
+    def test_api_iteration_invocation(self):
+        # The API is queried once per iteration.
+        self.log.debug("Testing appropriate API use and HTTPS by default...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        twitter(
+            keys=self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ],
+            media=("image", "text"),
+            keyword="test",
+            quantity=2,
+            location=(4, 3, 2, "km"),
+            interval=(1, 0),
+            api=api,
+            network=network
+        )
         api().search.assert_called_once_with(
             q="test",
             count=2,
@@ -411,17 +436,34 @@ class TwitterTest (unittest.TestCase):
             since_id=-5405765689543753728,
             max_id=-5405765685349449728
         )
+
+    def test_default_https(self):
+        # HTTPS is used by default to retrieve images.
+        self.log.debug("Testing HTTPS by default...")
+        api = self.injectors["api"]["regular"]
+        network = self.injectors["network"]["regular"]
+        twitter(
+            keys=self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ],
+            media=("image", "text"),
+            keyword="test",
+            quantity=2,
+            location=(4, 3, 2, "km"),
+            interval=(1, 0),
+            api=api,
+            network=network
+        )
         network.assert_called_once_with(
             self.tweets["statuses"][0]
             ["entities"]["media"][0]["media_url_https"]
         )
 
+    def test_rate_limit_obedience(self):
         # The rate limit is obeyed appropriately.
         self.log.debug("Testing rate limit obedience...")
         api = self.injectors["api"]["limited"]
         network = self.injectors["network"]["limited"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -438,12 +480,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_hard_failure(self):
         # Failing hard raises exceptions instead of returning empty.
         self.log.debug("Testing hard failure...")
         api = self.injectors["api"]["limited"]
         network = self.injectors["network"]["limited"]
-        api.reset_mock()
-        network.reset_mock()
         with self.assertRaises(OGReLimitError):
             twitter(
                 keys=self.retriever.keychain[
@@ -459,12 +500,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_TwythonError_relay(self):
         # TwythonErrors are relayed correctly.
         self.log.debug("Testing TwythonError relay...")
         api = self.injectors["api"]["imitate"]
         network = self.injectors["network"]["imitate"]
-        api.reset_mock()
-        network.reset_mock()
         with self.assertRaises(TwythonError):
             twitter(
                 keys=self.retriever.keychain[
@@ -479,12 +519,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_empty_response(self):
         # No "statuses" key in Twitter response causes a break.
         self.log.debug("Testing empty response...")
         api = self.injectors["api"]["complex"]
         network = self.injectors["network"]["complex"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -501,12 +540,11 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_empty_response_with_hard_failure(self):
         # No "statuses" key in fail_hard Twitter response causes an exception.
         self.log.debug("Testing empty response with hard failure...")
         api = self.injectors["api"]["complex"]
         network = self.injectors["network"]["complex"]
-        api.reset_mock()
-        network.reset_mock()
         with self.assertRaises(OGReError):
             twitter(
                 keys=self.retriever.keychain[
@@ -523,6 +561,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
 
+    def test_filtering_and_page_depletion(self):
         # Ungeotagged or untimestamped results are omitted.
         # "Text" media is returned when requested.
         # "Image" media is not returned unless requested.
@@ -530,8 +569,6 @@ class TwitterTest (unittest.TestCase):
         self.log.debug("Testing filtering and page depletion...")
         api = self.injectors["api"]["deplete"]
         network = self.injectors["network"]["deplete"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -595,6 +632,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
+    def test_filtering_counting_and_HTTP(self):
         # "Text" media is returned when not requested.
         # "Image" media is returned when requested.
         # Remaining results are calculated correctly.
@@ -602,8 +640,6 @@ class TwitterTest (unittest.TestCase):
         self.log.debug("Testing filtering, counting, and HTTP on demand...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -671,6 +707,7 @@ class TwitterTest (unittest.TestCase):
             self.tweets["statuses"][0]["entities"]["media"][0]["media_url"]
         )
 
+    def test_strict_media_paging_and_duplication(self):
         # Setting "strict_media" kwarg to True returns only requested media.
         # Parameters for paging are computed correctly.
         # Paging is not used unless it is needed.
@@ -678,8 +715,6 @@ class TwitterTest (unittest.TestCase):
         self.log.debug("Testing strict media, paging, and duplication...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -758,12 +793,11 @@ class TwitterTest (unittest.TestCase):
         )
         self.assertEqual(2, network.call_count)
 
+    def test_return_format(self):
         # Results are packaged correctly.
-        self.log.debug("Testing packaging...")
+        self.log.debug("Testing return format...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
-        api.reset_mock()
-        network.reset_mock()
         self.assertEqual(
             twitter(
                 keys=self.retriever.keychain[
@@ -823,10 +857,6 @@ class TwitterTest (unittest.TestCase):
                 }
             ]
         )
-        self.assertEqual(1, api.call_count)
-        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
-        self.assertEqual(1, api().search.call_count)
-        self.assertEqual(1, network.call_count)
 
 
 if __name__ == "__main__":
