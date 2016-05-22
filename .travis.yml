@@ -1,6 +1,9 @@
 language: python
 python:
   - "2.7"
+branches:
+  only:
+    - master
 before_install:
   - pip install --upgrade pip
   - pip install pep8 pylint tox
