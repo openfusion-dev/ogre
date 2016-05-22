@@ -243,7 +243,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'OGRe', u'OGRe Documentation',
-   u'David Tucker', 'OGRe', 'OpenFusion GIS Retriever',
+   u'David Tucker', 'OGRe', 'OpenFusion GeoJSON Retriever',
    'Miscellaneous'),
 ]
 

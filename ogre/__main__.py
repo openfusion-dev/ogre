@@ -28,7 +28,7 @@ def main():
 
     """Process arguments and invoke OGRe to fetch some data."""
 
-    parser = argparse.ArgumentParser(description="OpenFusion GIS Retriever")
+    parser = argparse.ArgumentParser(description="OpenFusion GeoJSON Retriever")
     parser.add_argument(
         "--keys",
         help="Specify API keys.",
