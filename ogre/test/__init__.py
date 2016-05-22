@@ -1,5 +1,5 @@
 """
-OpenFusion GIS Retriever Tests
+OpenFusion GeoJSON Retriever Tests
 
 :mod:`test_api` -- query handling tests
 

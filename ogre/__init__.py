@@ -1,5 +1,5 @@
 """
-OpenFusion GIS Retriever
+OpenFusion GeoJSON Retriever
 
 `ogre.test` -- subpackage for testing OGRe
 
