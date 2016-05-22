@@ -17,16 +17,17 @@ import logging
 import os
 import unittest
 from datetime import datetime
-from mock import MagicMock
 from StringIO import StringIO
+from mock import MagicMock
 from twython import TwythonError
 from snowflake2time import snowflake
 from ogre import OGRe
 from ogre.exceptions import OGReError, OGReLimitError
-from ogre.Twitter import *
+from ogre.Twitter import twitter, sanitize_twitter
 
 
 def twitter_limits(remaining, reset):
+    """Format a Twitter response to a limits request."""
     return {
         "resources": {
             "search": {
@@ -39,7 +40,7 @@ def twitter_limits(remaining, reset):
     }
 
 
-class TwitterTest (unittest.TestCase):
+class TwitterTest(unittest.TestCase):
 
     """
     Create objects that test the OGRe module.
@@ -300,7 +301,7 @@ class TwitterTest (unittest.TestCase):
         )
 
     def test_empty_media(self):
-        # Requesting no media returns empty without accessing the Twitter API.
+        """Requesting no media returns empty without accessing the Twitter API."""
         self.log.debug("Testing empty media...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -322,7 +323,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
     def test_zero_quantity(self):
-        # Requesting < 1 result returns empty without accessing the Twitter API.
+        """Requesting < 1 result returns empty without accessing the Twitter API."""
         self.log.debug("Testing zero quantity...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -344,7 +345,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
     def test_zero_query_limit(self):
-        # Allowing < 1 query returns empty without accessing the Twitter API.
+        """Allowing < 1 query returns empty without accessing the Twitter API."""
         self.log.debug("Testing zero query limit...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -368,7 +369,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
     def test_api_invocation(self):
-        # The constructor is called appropriately once per request.
+        """The constructor is called appropriately once per request."""
         self.log.debug("Testing API invocation...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -394,7 +395,7 @@ class TwitterTest (unittest.TestCase):
         )
 
     def test_rate_limit_retrieval(self):
-        # The rate limit is retrieved once per request.
+        """The rate limit is retrieved once per request."""
         self.log.debug("Testing rate limit retrieval...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -413,7 +414,7 @@ class TwitterTest (unittest.TestCase):
         api().get_application_rate_limit_status.assert_called_once_with()
 
     def test_api_iteration_invocation(self):
-        # The API is queried once per iteration.
+        """The API is queried once per iteration."""
         self.log.debug("Testing appropriate API use and HTTPS by default...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -438,7 +439,7 @@ class TwitterTest (unittest.TestCase):
         )
 
     def test_default_https(self):
-        # HTTPS is used by default to retrieve images.
+        """HTTPS is used by default to retrieve images."""
         self.log.debug("Testing HTTPS by default...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -460,7 +461,7 @@ class TwitterTest (unittest.TestCase):
         )
 
     def test_rate_limit_obedience(self):
-        # The rate limit is obeyed appropriately.
+        """The rate limit is obeyed appropriately."""
         self.log.debug("Testing rate limit obedience...")
         api = self.injectors["api"]["limited"]
         network = self.injectors["network"]["limited"]
@@ -481,7 +482,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
     def test_hard_failure(self):
-        # Failing hard raises exceptions instead of returning empty.
+        """Failing hard raises exceptions instead of returning empty."""
         self.log.debug("Testing hard failure...")
         api = self.injectors["api"]["limited"]
         network = self.injectors["network"]["limited"]
@@ -500,8 +501,8 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_TwythonError_relay(self):
-        # TwythonErrors are relayed correctly.
+    def test_TwythonError_relay(self):  # pylint: disable=invalid-name
+        """TwythonErrors are relayed correctly."""
         self.log.debug("Testing TwythonError relay...")
         api = self.injectors["api"]["imitate"]
         network = self.injectors["network"]["imitate"]
@@ -520,7 +521,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(0, network.call_count)
 
     def test_empty_response(self):
-        # No "statuses" key in Twitter response causes a break.
+        """No "statuses" key in Twitter response causes a break."""
         self.log.debug("Testing empty response...")
         api = self.injectors["api"]["complex"]
         network = self.injectors["network"]["complex"]
@@ -540,8 +541,8 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_empty_response_with_hard_failure(self):
-        # No "statuses" key in fail_hard Twitter response causes an exception.
+    def test_empty_response_with_hard_failure(self):  # pylint: disable=invalid-name
+        """No "statuses" key in fail_hard Twitter response causes an exception."""
         self.log.debug("Testing empty response with hard failure...")
         api = self.injectors["api"]["complex"]
         network = self.injectors["network"]["complex"]
@@ -560,12 +561,13 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-
-    def test_filtering_and_page_depletion(self):
-        # Ungeotagged or untimestamped results are omitted.
-        # "Text" media is returned when requested.
-        # "Image" media is not returned unless requested.
-        # No remaining pages causes a break.
+    def test_filtering_and_page_depletion(self):  # pylint: disable=invalid-name
+        """
+        Ungeotagged or untimestamped results are omitted.
+        "Text" media is returned when requested.
+        "Image" media is not returned unless requested.
+        No remaining pages causes a break.
+        """
         self.log.debug("Testing filtering and page depletion...")
         api = self.injectors["api"]["deplete"]
         network = self.injectors["network"]["deplete"]
@@ -587,10 +589,8 @@ class TwitterTest (unittest.TestCase):
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][0]
-                                ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]
-                                ["coordinates"]["coordinates"][1]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1]
                         ]
                     },
                     "type": "Feature",
@@ -632,11 +632,13 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_filtering_counting_and_HTTP(self):
-        # "Text" media is returned when not requested.
-        # "Image" media is returned when requested.
-        # Remaining results are calculated correctly.
-        # Setting "secure" kwarg to False causes HTTP retrieval.
+    def test_filtering_counting_and_HTTP(self):  # pylint: disable=invalid-name
+        """
+        "Text" media is returned when not requested.
+        "Image" media is returned when requested.
+        Remaining results are calculated correctly.
+        Setting "secure" kwarg to False causes HTTP retrieval.
+        """
         self.log.debug("Testing filtering, counting, and HTTP on demand...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -707,11 +709,13 @@ class TwitterTest (unittest.TestCase):
             self.tweets["statuses"][0]["entities"]["media"][0]["media_url"]
         )
 
-    def test_strict_media_paging_and_duplication(self):
-        # Setting "strict_media" kwarg to True returns only requested media.
-        # Parameters for paging are computed correctly.
-        # Paging is not used unless it is needed.
-        # Duplicates are not filtered.
+    def test_strict_media_paging_and_duplication(self):  # pylint: disable=invalid-name
+        """
+        Setting "strict_media" kwarg to True returns only requested media.
+        Parameters for paging are computed correctly.
+        Paging is not used unless it is needed.
+        Duplicates are not filtered.
+        """
         self.log.debug("Testing strict media, paging, and duplication...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
@@ -794,7 +798,7 @@ class TwitterTest (unittest.TestCase):
         self.assertEqual(2, network.call_count)
 
     def test_return_format(self):
-        # Results are packaged correctly.
+        """Results are packaged correctly."""
         self.log.debug("Testing return format...")
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]

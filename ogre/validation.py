@@ -8,12 +8,12 @@ OGRe Parameter Validator
 
 
 def validate(
-    media=("image", "sound", "text", "video"),
-    keyword="",
-    quantity=15,
-    location=None,
-    interval=None,
-):
+        media=("image", "sound", "text", "video"),
+        keyword="",
+        quantity=15,
+        location=None,
+        interval=None,
+):  # pylint: disable=too-many-branches
 
     """
     Check common interface parameters for errors and validity.
@@ -45,10 +45,10 @@ def validate(
         for medium in media:
             medium = medium.lower()
             if medium not in (
-                "image",
-                "sound",
-                "text",
-                "video"
+                    "image",
+                    "sound",
+                    "text",
+                    "video"
             ):
                 raise ValueError(
                     'Medium may be "image", "sound", "text", or "video".'
@@ -92,12 +92,12 @@ def validate(
 
 
 def sanitize(
-    media=("image", "sound", "text", "video"),
-    keyword="",
-    quantity=15,
-    location=None,
-    interval=None,
-):
+        media=("image", "sound", "text", "video"),
+        keyword="",
+        quantity=15,
+        location=None,
+        interval=None,
+):  # pylint: disable=too-many-locals
 
     """Validate and transform input to expected types.
 
@@ -142,7 +142,7 @@ def sanitize(
             if medium not in clean_media:
                 clean_media.append(medium)
 
-    clean_media = tuple(clean_media)
+    clean_media = tuple(clean_media)  # pylint: disable=redefined-variable-type
     clean_keyword = str(keyword)
     clean_quantity = int(quantity)
 

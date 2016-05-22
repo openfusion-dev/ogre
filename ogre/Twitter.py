@@ -24,7 +24,7 @@ def sanitize_twitter(
         quantity=15,
         location=None,
         interval=None
-):
+):  # pylint: disable=too-many-arguments,too-many-locals
 
     """
     Validate and prepare parameters for use in Twitter data retrieval.
@@ -65,8 +65,8 @@ def sanitize_twitter(
     for key, value in keys.items():
         key = key.lower()
         if key not in (
-            "consumer_key",
-            "access_token"
+                "consumer_key",
+                "access_token"
         ):
             raise ValueError(
                 'Valid Twitter keys are "consumer_key" and "access_token".'
@@ -80,7 +80,7 @@ def sanitize_twitter(
             'Twitter API keys must include a "consumer_key" and "access_token".'
         )
 
-    clean_media, q, clean_quantity, clean_location, clean_interval = \
+    clean_media, clean_keyword, clean_quantity, clean_location, clean_interval = \
         sanitize(
             media=media,
             keyword=keyword,
@@ -94,13 +94,14 @@ def sanitize_twitter(
         for clean_medium in clean_media:
             if clean_medium in ("image", "text"):
                 kinds.append(clean_medium)
-    kinds = tuple(kinds)
+    kinds = tuple(kinds)  # pylint: disable=redefined-variable-type
 
+    keywords = clean_keyword
     if kinds == ("image",):
-        q += "  pic.twitter.com"
+        keywords += "  pic.twitter.com"
     elif kinds == ("text",):
-        q += " -pic.twitter.com"
-    q = q.strip()
+        keywords += " -pic.twitter.com"
+    keywords = keywords.strip()
 
     geocode = None
     if location is not None and clean_location[2] > 0:
@@ -116,13 +117,13 @@ def sanitize_twitter(
             utc2snowflake(clean_interval[1])
         )
 
-    if q in ("", "-pic.twitter.com") and geocode is None:
+    if keywords in ("", "-pic.twitter.com") and geocode is None:
         raise ValueError("Specify either a keyword or a location.")
 
     return (
         clean_keys,
         kinds,
-        q,
+        keywords,
         clean_quantity,
         geocode,
         period_id
@@ -137,7 +138,7 @@ def twitter(
         location=None,
         interval=None,
         **kwargs
-):
+):  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
 
     """
     Fetch Tweets from the Twitter API.
@@ -230,7 +231,7 @@ def twitter(
                  https://dev.twitter.com/docs/api/1.1/get/search/tweets.
     """
 
-    keychain, kinds, q, remaining, geocode, (since_id, max_id) = \
+    keychain, kinds, keywords, remaining, geocode, (since_id, max_id) = \
         sanitize_twitter(
             keys=keys,
             media=media,
@@ -254,7 +255,7 @@ def twitter(
 
     qid = hashlib.md5(
         str(time.time()) +
-        str(q) +
+        str(keywords) +
         str(remaining) +
         str(geocode) +
         str(since_id) +
@@ -267,7 +268,7 @@ def twitter(
     log.debug(
         qid+" Status:" +
         " media("+str(media)+")" +
-        " keyword("+str(q)+")" +
+        " keyword("+str(keywords)+")" +
         " quantity("+str(remaining)+")" +
         " location("+str(geocode)+")" +
         " interval("+str(since_id)+","+str(max_id)+")" +
@@ -309,11 +310,11 @@ def twitter(
     total = remaining
 
     collection = []
-    for query in range(modifiers["query_limit"]):
+    for query in range(modifiers["query_limit"]):  # pylint: disable=too-many-nested-blocks
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
             results = api.search(
-                q=q,
+                q=keywords,
                 count=count,
                 geocode=geocode,
                 since_id=since_id,

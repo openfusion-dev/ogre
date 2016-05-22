@@ -10,10 +10,10 @@ OGRe Parameter Validator Tests
 
 import logging
 import unittest
-from ogre.validation import *
+from ogre.validation import validate, sanitize
 
 
-class ValidationTest (unittest.TestCase):
+class ValidationTest(unittest.TestCase):
 
     """
     Create objects that test the OGRe validation module.

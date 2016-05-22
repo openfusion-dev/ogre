@@ -16,13 +16,13 @@ import json
 import logging
 import os
 import unittest
-from mock import MagicMock
 from StringIO import StringIO
+from mock import MagicMock
 from ogre import OGRe
 from ogre.Twitter import twitter
 
 
-class OGReConstructorTest (unittest.TestCase):
+class OGReConstructorTest(unittest.TestCase):
 
     """
     Create objects that test the OGRe constructor.
@@ -82,7 +82,7 @@ class OGReConstructorTest (unittest.TestCase):
         )
 
 
-class OGReTest (unittest.TestCase):
+class OGReTest(unittest.TestCase):
 
     """
     Create objects that test the OGRe module.
