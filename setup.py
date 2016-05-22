@@ -20,7 +20,7 @@ setup(
     long_description=README,
     author='David Tucker',
     author_email='dmtucker@ucsc.edu',
-    license='GPL',
+    license='LGPLv2+',
     url='https://github.com/dmtucker/ogre',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     include_package_data=True,
@@ -30,7 +30,8 @@ setup(
     entry_points={'console_scripts': ['ogre = ogre.__main__:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
-        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: '
+        'GNU Lesser General Public License v2 or later (LGPLv2+)',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
