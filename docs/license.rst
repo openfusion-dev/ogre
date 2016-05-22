@@ -3,7 +3,7 @@ License
 
 OGRe is released under the `GNU Lesser General Public License`_.
 
-.. _GNU General Public License: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+.. _GNU Lesser General Public License: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
 
 .. seealso:: `GNU LGPLv2+ in Plain English`_
 
