@@ -16,7 +16,10 @@ import json
 import logging
 import os
 import unittest
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO  # pylint: disable=import-error
 from mock import MagicMock
 from ogre import OGRe
 from ogre.Twitter import twitter
@@ -137,7 +140,7 @@ class OGReTest(unittest.TestCase):
             self.api().search.return_value = json.load(tweets)
         self.api.reset_mock()
         self.network = MagicMock()
-        self.network.side_effect = lambda _: StringIO("test_image")
+        self.network.side_effect = lambda _: StringIO(u"test_image")
         self.network.reset_mock()
 
     def test_fetch(self):

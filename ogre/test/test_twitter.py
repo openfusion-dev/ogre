@@ -17,7 +17,10 @@ import logging
 import os
 import unittest
 from datetime import datetime
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from mock import MagicMock
 from twython import TwythonError
 from snowflake2time import snowflake
@@ -671,7 +674,7 @@ class TwitterTest(unittest.TestCase):
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
-                        "image": base64.b64encode("test_image"),
+                        "image": base64.b64encode("test_image".encode('utf-8')),
                         "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][0]["id"]
@@ -747,7 +750,7 @@ class TwitterTest(unittest.TestCase):
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
-                        "image": base64.b64encode("test_image"),
+                        "image": base64.b64encode("test_image".encode('utf-8')),
                         "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][0]["id"]
@@ -768,7 +771,7 @@ class TwitterTest(unittest.TestCase):
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
-                        "image": base64.b64encode("test_image"),
+                        "image": base64.b64encode("test_image".encode('utf-8')),
                         "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][0]["id"]
@@ -830,7 +833,7 @@ class TwitterTest(unittest.TestCase):
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
-                        "image": base64.b64encode("test_image"),
+                        "image": base64.b64encode("test_image".encode('utf-8')),
                         "time": datetime.utcfromtimestamp(
                             snowflake.snowflake2utc(
                                 self.tweets["statuses"][0]["id"]

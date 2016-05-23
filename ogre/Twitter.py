@@ -9,7 +9,10 @@ import hashlib
 import logging
 import sys
 import time
-import urllib
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen  # pylint: disable=import-error
 from datetime import datetime
 from twython import Twython
 from ogre.validation import sanitize
@@ -244,7 +247,7 @@ def twitter(
     modifiers = {
         "api": Twython,
         "fail_hard": False,
-        "network": urllib.urlopen,
+        "network": urlopen,
         "query_limit": 450,  # Twitter allows 450 queries every 15 minutes.
         "secure": True,
         "strict_media": False
@@ -254,13 +257,15 @@ def twitter(
             modifiers[modifier] = kwargs[modifier]
 
     qid = hashlib.md5(
-        str(time.time()) +
-        str(keywords) +
-        str(remaining) +
-        str(geocode) +
-        str(since_id) +
-        str(max_id) +
-        str(kwargs)
+        (
+            str(time.time()) +
+            str(keywords) +
+            str(remaining) +
+            str(geocode) +
+            str(since_id) +
+            str(max_id) +
+            str(kwargs)
+        ).encode('utf-8')
     ).hexdigest()
 
     log = logging.getLogger(__name__)
@@ -306,7 +311,7 @@ def twitter(
         if limit < modifiers["query_limit"]:
             modifiers["query_limit"] = limit
     except KeyError:
-        log.warn(qid+" Unobtainable Rate Limit")
+        log.warning(qid+" Unobtainable Rate Limit")
     total = remaining
 
     collection = []
@@ -378,7 +383,7 @@ def twitter(
                                         base64.b64encode(
                                             modifiers["network"](
                                                 entity[media_url]
-                                            ).read()
+                                            ).read().encode('utf-8')
                                         )
             if len(feature["properties"]) > 2:
                 collection.append(feature)
