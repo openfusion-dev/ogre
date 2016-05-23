@@ -32,74 +32,74 @@ def main():
     parser.add_argument(
         "--keys",
         help="Specify API keys.",
-        default=None
+        default=None,
     )
     parser.add_argument(
         "-s", "--sources",
         help="Specify public APIs to get content from (required)." +
         " 'Twitter' is currently the only supported source.",
         action="append",
-        required=True
+        required=True,
     )
     parser.add_argument(
         "-m", "--media",
         help="Specify content mediums to fetch." +
         " 'image', 'sound', 'text', and 'video' are supported.",
         default=None,
-        action="append"
+        action="append",
     )
     parser.add_argument(
         "-k", "--keyword",
         help="Specify search criteria.",
-        default=""
+        default="",
     )
     parser.add_argument(
         "-q", "--quantity",
         help="Specify a quota of results to fetch.",
         type=int,
-        default=15
+        default=15,
     )
     parser.add_argument(
         "-l", "--location",
         help="Specify a place (latitude, longitude, radius, unit) to search." +
         " 'km' and 'mi' are supported units.",
         default=None,
-        nargs=4
+        nargs=4,
     )
     parser.add_argument(
         "-i", "--interval",
         help="Specify a period of time (earliest, latest) to search." +
         " Each moment should be a POSIX timestamp.",
         default=None,
-        nargs=2
+        nargs=2,
     )
     parser.add_argument(
         "--hard",
         help="Fail hard (Raise exceptions instead of returning empty).",
         action="store_true",
-        default=False
+        default=False,
     )
     parser.add_argument(
         "--insecure",
         help="Prefer HTTP.",
         action="store_true",
-        default=False
+        default=False,
     )
     parser.add_argument(
         "--limit",
         help="Specify a query limit.",
-        default=None
+        default=None,
     )
     parser.add_argument(
         "--log",
         help="Specify a log level.",
-        default=None
+        default=None,
     )
     parser.add_argument(
         "--strict",
         help="Ensure resulting media is specifically requested.",
         action="store_true",
-        default=False
+        default=False,
     )
     args = parser.parse_args()
 
@@ -109,8 +109,8 @@ def main():
         args.keys = {
             "Twitter": {
                 "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
-                "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
-            }
+                "access_token": os.environ.get("TWITTER_ACCESS_TOKEN"),
+            },
         }
     if args.media is None:
         args.media = ("image", "sound", "text", "video")
@@ -131,24 +131,26 @@ def main():
     logging.basicConfig(
         level=args.log,
         format="%(asctime)s.%(msecs)03d %(name)s %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    print json.dumps(
-        OGRe(args.keys).fetch(
-            sources=args.sources,
-            media=args.media,
-            keyword=args.keyword,
-            quantity=args.quantity,
-            location=args.location,
-            interval=args.interval,
-            fail_hard=args.hard,
-            query_limit=args.limit,
-            secure=args.insecure,
-            strict_media=args.strict
+    print(
+        json.dumps(
+            OGRe(args.keys).fetch(
+                sources=args.sources,
+                media=args.media,
+                keyword=args.keyword,
+                quantity=args.quantity,
+                location=args.location,
+                interval=args.interval,
+                fail_hard=args.hard,
+                query_limit=args.limit,
+                secure=args.insecure,
+                strict_media=args.strict,
+            ),
+            indent=4,
+            separators=(",", ": "),
         ),
-        indent=4,
-        separators=(",", ": ")
     )
 
 
