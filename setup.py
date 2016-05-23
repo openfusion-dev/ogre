@@ -15,7 +15,7 @@ with open('README.rst') as readme_file:
 
 setup(
     name="OGRe",
-    version='4.5.1',
+    version='4.6.0',
     description='OpenFusion GeoJSON Retriever',
     long_description=README,
     author='David Tucker',
