@@ -14,6 +14,7 @@ install:
   - python setup.py sdist
   - pip install ./dist/*
 script:
+  - ogre --help
   - tox
   - pep8 ogre setup.py
   - pylint ogre setup.py
