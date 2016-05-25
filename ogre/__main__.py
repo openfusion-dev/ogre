@@ -1,18 +1,5 @@
-#!/usr/bin/env python
-
 """
 Make queries using OGRe directly.
-
-usage: ogre [(-s|--sources) Twitter]
-    [--keys "<dict>"]
-    [(-m|--media) (image|sound|text|video)]
-    [(-k|--keyword) <str>]
-    [(-q|--quantity) <int>]
-    [(-l|--location) <longitude> <latitude> <radius> (km|mi)]
-    [(-i|--interval) <since> <until>]
-    [(-h|--help)]
-    [--insecure]
-    [--strict]
 
 See https://ogre.readthedocs.org/en/latest/ for more information.
 """
