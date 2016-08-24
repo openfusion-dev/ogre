@@ -22,7 +22,7 @@ setup(
     author_email='dmtucker@ucsc.edu',
     license='LGPLv2+',
     url='https://github.com/dmtucker/ogre',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(exclude=['docs']),
     include_package_data=True,
     test_suite="ogre.test",
     install_requires=[
