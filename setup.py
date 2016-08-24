@@ -29,7 +29,7 @@ setup(
         'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
-    entry_points={'console_scripts': ['ogre = ogre.__main__:main']},
+    entry_points={'console_scripts': ['ogre = ogre.cli:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
         'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
