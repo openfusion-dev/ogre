@@ -22,19 +22,17 @@ setup(
     author_email='dmtucker@ucsc.edu',
     license='LGPLv2+',
     url='https://github.com/dmtucker/ogre',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(exclude=['docs']),
     include_package_data=True,
     test_suite="ogre.test",
     install_requires=[
         'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
-    entry_points={'console_scripts': ['ogre = ogre.__main__:main']},
+    entry_points={'console_scripts': ['ogre = ogre.cli:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
-        'License :: OSI Approved :: '
-        'GNU Lesser General Public License v2 or later (LGPLv2+)',
-        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
