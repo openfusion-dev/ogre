@@ -25,8 +25,10 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     include_package_data=True,
     test_suite="ogre.test",
-    tests_require=['mock==1.0.1'],
-    install_requires=['twython'],
+    install_requires=[
+        'mock ~= 1.0.1',
+        'twython ~= 3.4',
+    ],
     entry_points={'console_scripts': ['ogre = ogre.__main__:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
