@@ -32,9 +32,7 @@ setup(
     entry_points={'console_scripts': ['ogre = ogre.__main__:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
-        'License :: OSI Approved :: '
-        'GNU Lesser General Public License v2 or later (LGPLv2+)',
-        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
