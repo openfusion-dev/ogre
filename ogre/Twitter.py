@@ -252,7 +252,7 @@ def twitter(
         "secure": True,
         "strict_media": False
     }
-    for modifier in modifiers.keys():
+    for modifier in modifiers:
         if kwargs.get(modifier) is not None:
             modifiers[modifier] = kwargs[modifier]
 
