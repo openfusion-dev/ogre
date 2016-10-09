@@ -8,7 +8,7 @@ Results are returned in GeoJSON format.
 
 Documentation
 -------------
-https://ogre.readthedocs.org/
+https://ogre.readthedocs.io/
 
 License
 -------
