@@ -16,10 +16,7 @@ import json
 import logging
 import os
 import unittest
-try:
-    from io import StringIO
-except ImportError:
-    from StringIO import StringIO  # pylint: disable=import-error
+from io import StringIO
 from mock import MagicMock
 from ogre import OGRe
 from ogre.Twitter import twitter
@@ -219,7 +216,3 @@ class OGReTest(unittest.TestCase):
                 network=self.network
             )
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
