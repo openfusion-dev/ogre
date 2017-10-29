@@ -26,6 +26,7 @@ setup(
     include_package_data=True,
     test_suite="ogre.test",
     install_requires=[
+        'future ~= 0.16.0',
         'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],

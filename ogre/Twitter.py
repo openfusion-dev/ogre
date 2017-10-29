@@ -9,15 +9,15 @@ import hashlib
 import logging
 import sys
 import time
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen  # pylint: disable=import-error
 from datetime import datetime
 from twython import Twython
 from ogre.validation import sanitize
 from ogre.exceptions import OGReError, OGReLimitError
 from snowflake2time.snowflake import snowflake2utc, utc2snowflake
+
+from future.standard_library import hooks
+with hooks():
+    from urllib.request import urlopen  # pylint: disable=import-error
 
 
 def sanitize_twitter(
