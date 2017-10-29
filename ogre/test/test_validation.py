@@ -38,6 +38,10 @@ class ValidationTest(unittest.TestCase):
 
         self.log.debug("Testing the OGRe validator...")
 
+        class _StrTrap(Exception):
+            def __str__(self):
+                raise self
+
         with self.assertRaises(AttributeError):
             validate(media=(0,))
         with self.assertRaises(AttributeError):
@@ -46,6 +50,8 @@ class ValidationTest(unittest.TestCase):
             validate(media=("invalid",))
         with self.assertRaises(ValueError):
             validate(media=("text", "invalid"))
+        with self.assertRaises(ValueError):
+            validate(keyword=_StrTrap())
         with self.assertRaises(ValueError):
             validate(quantity=-1)
         with self.assertRaises(ValueError):
@@ -123,7 +129,3 @@ class ValidationTest(unittest.TestCase):
             sanitize(interval=(1, 0)),
             (("image", "sound", "text", "video"), "", 15, None, (0, 1))
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

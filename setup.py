@@ -26,6 +26,7 @@ setup(
     include_package_data=True,
     test_suite="ogre.test",
     install_requires=[
+        'future ~= 0.16.0',
         'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
@@ -39,6 +40,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
-        'Development Status :: 4 - Beta',
+        'Programming Language :: Python :: 3.6',
+        'Development Status :: 5 - Production/Stable',
     ],
 )

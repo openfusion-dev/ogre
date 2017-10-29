@@ -9,15 +9,15 @@ import hashlib
 import logging
 import sys
 import time
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen  # pylint: disable=import-error
 from datetime import datetime
 from twython import Twython
 from ogre.validation import sanitize
 from ogre.exceptions import OGReError, OGReLimitError
 from snowflake2time.snowflake import snowflake2utc, utc2snowflake
+
+from future.standard_library import hooks
+with hooks():
+    from urllib.request import urlopen  # pylint: disable=import-error
 
 
 def sanitize_twitter(
@@ -97,7 +97,7 @@ def sanitize_twitter(
         for clean_medium in clean_media:
             if clean_medium in ("image", "text"):
                 kinds.append(clean_medium)
-    kinds = tuple(kinds)  # pylint: disable=redefined-variable-type
+    kinds = tuple(kinds)
 
     keywords = clean_keyword
     if kinds == ("image",):
@@ -312,6 +312,7 @@ def twitter(
             modifiers["query_limit"] = limit
     except KeyError:
         log.warning(qid+" Unobtainable Rate Limit")
+        raise
     total = remaining
 
     collection = []
@@ -325,7 +326,7 @@ def twitter(
                 since_id=since_id,
                 max_id=max_id
             )
-        except:
+        except Exception:
             log.info(
                 qid+" Failure: " +
                 str(query+1)+" queries produced " +
@@ -401,7 +402,7 @@ def twitter(
             )
             break
         if results.get("search_metadata", {}).get("next_results") is None:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+            outcome = "Success" if collection else "Failure"
             log.info(
                 qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +
@@ -415,7 +416,7 @@ def twitter(
             .split("&")[0]
         )
         if query+1 >= modifiers["query_limit"]:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+            outcome = "Success" if collection else "Failure"
             log.info(
                 qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +
