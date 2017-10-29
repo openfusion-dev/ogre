@@ -312,6 +312,7 @@ def twitter(
             modifiers["query_limit"] = limit
     except KeyError:
         log.warning(qid+" Unobtainable Rate Limit")
+        raise
     total = remaining
 
     collection = []

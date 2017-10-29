@@ -17,10 +17,7 @@ import logging
 import os
 import unittest
 from datetime import datetime
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import StringIO
 from mock import MagicMock
 from twython import TwythonError
 from snowflake2time import snowflake
@@ -109,7 +106,29 @@ class TwitterTest(unittest.TestCase):
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO("test_image")
+                    "effect": lambda _: StringIO(u"test_image")
+                }
+            },
+            "malformed_limits": {
+                "api": {
+                    "limit": {},
+                    "return": copy.deepcopy(self.tweets),
+                    "effect": None
+                },
+                "network": {
+                    "return": None,
+                    "effect": lambda _: StringIO(u"test_image")
+                }
+            },
+            "low_limits": {
+                "api": {
+                    "limit": twitter_limits(1, 1234567890),
+                    "return": copy.deepcopy(self.tweets),
+                    "effect": None
+                },
+                "network": {
+                    "return": None,
+                    "effect": lambda _: StringIO(u"test_image")
                 }
             },
             "limited": {
@@ -162,7 +181,7 @@ class TwitterTest(unittest.TestCase):
                     "effect": None
                 },
                 "network": {
-                    "return": StringIO("test_image"),
+                    "return": StringIO(u"test_image"),
                     "effect": None
                 }
             }
@@ -483,6 +502,43 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
+
+    def test_rate_limit_failure(self):
+        """Failure to retrieve a rate limit is fatal."""
+        self.log.debug("Testing rate limit failure...")
+        api = self.injectors["api"]["malformed_limits"]
+        network = self.injectors["network"]["malformed_limits"]
+        with self.assertRaises(KeyError):
+            twitter(
+                keys=self.retriever.keychain[
+                    self.retriever.keyring["twitter"]
+                ],
+                keyword="test",
+                api=api,
+                network=network,
+            )
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(0, api().search.call_count)
+        self.assertEqual(0, network.call_count)
+
+    def test_rate_limit_low(self):
+        """The rate limit should be obeyed during paging."""
+        self.log.debug("Testing rate low limit obedience...")
+        api = self.injectors["api"]["low_limits"]
+        network = self.injectors["network"]["low_limits"]
+        twitter(
+            keys=self.retriever.keychain[
+                self.retriever.keyring["twitter"]
+            ],
+            keyword="test",
+            api=api,
+            network=network,
+        )
+        self.assertEqual(1, api.call_count)
+        self.assertEqual(1, api().get_application_rate_limit_status.call_count)
+        self.assertEqual(1, api().search.call_count)
+        self.assertEqual(1, network.call_count)
 
     def test_hard_failure(self):
         """Failing hard raises exceptions instead of returning empty."""
@@ -864,7 +920,3 @@ class TwitterTest(unittest.TestCase):
                 }
             ]
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
