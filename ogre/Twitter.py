@@ -97,7 +97,7 @@ def sanitize_twitter(
         for clean_medium in clean_media:
             if clean_medium in ("image", "text"):
                 kinds.append(clean_medium)
-    kinds = tuple(kinds)  # pylint: disable=redefined-variable-type
+    kinds = tuple(kinds)
 
     keywords = clean_keyword
     if kinds == ("image",):
@@ -325,7 +325,7 @@ def twitter(
                 since_id=since_id,
                 max_id=max_id
             )
-        except:
+        except Exception:
             log.info(
                 qid+" Failure: " +
                 str(query+1)+" queries produced " +
@@ -401,7 +401,7 @@ def twitter(
             )
             break
         if results.get("search_metadata", {}).get("next_results") is None:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+            outcome = "Success" if collection else "Failure"
             log.info(
                 qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +
@@ -415,7 +415,7 @@ def twitter(
             .split("&")[0]
         )
         if query+1 >= modifiers["query_limit"]:
-            outcome = "Success" if len(collection) > 0 else "Failure"
+            outcome = "Success" if collection else "Failure"
             log.info(
                 qid+" "+outcome+": " +
                 str(query+1)+" queries produced " +

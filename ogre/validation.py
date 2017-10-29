@@ -56,7 +56,7 @@ def validate(
 
     try:
         str(keyword)
-    except:
+    except Exception:
         raise ValueError("Keyword must be a string.")
 
     if int(quantity) < 0:
@@ -142,7 +142,7 @@ def sanitize(
             if medium not in clean_media:
                 clean_media.append(medium)
 
-    clean_media = tuple(clean_media)  # pylint: disable=redefined-variable-type
+    clean_media = tuple(clean_media)
     clean_keyword = str(keyword)
     clean_quantity = int(quantity)
 
