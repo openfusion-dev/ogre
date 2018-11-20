@@ -50,7 +50,7 @@ public sources such as Twitter. It merges the results with gathered data and
 writes the combined set to a GeoJSON file that gets handed off to the
 visualizer.
 
-.. seealso:: https://github.com/dmtucker/ogre
+.. seealso:: https://github.com/openfusion-dev/ogre
 
 Visualizer
 ~~~~~~~~~~
@@ -59,4 +59,4 @@ the web application via AJAX and plots it on a map or timeline.
 Vizit is capable of rendering any GeoJSON file, and it supports a number of
 special properties to affect the resulting visualization.
 
-.. seealso:: https://github.com/dmtucker/vizit
+.. seealso:: https://github.com/openfusion-dev/vizit

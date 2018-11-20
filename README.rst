@@ -6,6 +6,15 @@ Results are returned in GeoJSON format.
 
 |Build Status| |Test Coverage| |Documentation Status| |Latest Release|
 
+.. |Build Status| image:: https://img.shields.io/travis/com/openfusion-dev/ogre.svg
+   :target: https://travis-ci.com/openfusion-dev/ogre
+.. |Test Coverage| image:: https://img.shields.io/coveralls/openfusion-dev/ogre.svg
+   :target: https://coveralls.io/github/openfusion-dev/ogre
+.. |Documentation Status| image:: https://readthedocs.org/projects/ogre/badge/?version=latest
+   :target: https://ogre.readthedocs.org/
+.. |Latest Release| image:: https://img.shields.io/pypi/v/ogre.svg
+   :target: https://pypi.python.org/pypi/OGRe
+
 Documentation
 -------------
 https://ogre.readthedocs.io/
@@ -28,12 +37,3 @@ General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this library; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-.. |Build Status| image:: https://img.shields.io/travis/dmtucker/ogre.svg
-   :target: https://travis-ci.org/dmtucker/ogre
-.. |Test Coverage| image:: https://img.shields.io/coveralls/dmtucker/ogre.svg
-   :target: https://coveralls.io/github/dmtucker/ogre
-.. |Documentation Status| image:: https://readthedocs.org/projects/ogre/badge/?version=latest
-   :target: https://ogre.readthedocs.org/
-.. |Latest Release| image:: https://img.shields.io/pypi/v/ogre.svg
-   :target: https://pypi.python.org/pypi/OGRe

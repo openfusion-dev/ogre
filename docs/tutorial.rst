@@ -28,7 +28,7 @@ To get OGRe, use one of the following methods:
 
 .. code-block:: bash
 
-   $ git clone http://github.com/dmtucker/ogre.git
+   $ git clone http://github.com/openfusion-dev/ogre.git
    $ cd ogre
    $ python setup.py install
 
