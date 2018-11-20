@@ -21,7 +21,7 @@ setup(
     author='David Tucker',
     author_email='dmtucker@ucsc.edu',
     license='LGPLv2+',
-    url='https://github.com/dmtucker/ogre',
+    url='https://github.com/openfusion-dev/ogre',
     packages=find_packages(exclude=['docs']),
     include_package_data=True,
     test_suite="ogre.test",
