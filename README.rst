@@ -4,12 +4,10 @@ OGRe fetches geotagged data from publicly available APIs based on a provided
 keyword, location, period of time, or media type.
 Results are returned in GeoJSON format.
 
-|Build Status| |Test Coverage| |Documentation Status| |Latest Release|
+|Build Status| |Documentation Status| |Latest Release|
 
 .. |Build Status| image:: https://img.shields.io/travis/com/openfusion-dev/ogre.svg
    :target: https://travis-ci.com/openfusion-dev/ogre
-.. |Test Coverage| image:: https://img.shields.io/coveralls/openfusion-dev/ogre.svg
-   :target: https://coveralls.io/github/openfusion-dev/ogre
 .. |Documentation Status| image:: https://readthedocs.org/projects/ogre/badge/?version=latest
    :target: https://ogre.readthedocs.org/
 .. |Latest Release| image:: https://img.shields.io/pypi/v/ogre.svg
