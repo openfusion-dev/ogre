@@ -17,6 +17,7 @@ setup(
     name="OGRe",
     description='OpenFusion GeoJSON Retriever',
     long_description=README,
+    long_description_content_type='text/x-rst',
     author='David Tucker',
     author_email='dmtucker@ucsc.edu',
     license='LGPLv2+',
