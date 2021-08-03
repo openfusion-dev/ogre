@@ -26,8 +26,8 @@ setup(
     include_package_data=True,
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,<4',
     install_requires=[
-        'future ~= 0.16.0',
-        'twython ~= 3.4',
+        'future >= 0.16',
+        'twython >= 3.4',
     ],
     options={'bdist_wheel': {'universal': True}},
     entry_points={'console_scripts': ['ogre = ogre.cli:main']},
