@@ -62,7 +62,7 @@ class OGRe(object):
         quantity=15,
         location=None,
         interval=None,
-        **kwargs
+        **kwargs,
     ):  # pylint: disable=too-many-arguments
 
         """
@@ -122,7 +122,7 @@ class OGRe(object):
                     quantity=quantity,
                     location=location,
                     interval=interval,
-                    **kwargs
+                    **kwargs,
                 ):
                     feature_collection["features"].append(features)
         return feature_collection
@@ -135,7 +135,7 @@ class OGRe(object):
         when=None,
         where=None,
         how_many=15,
-        **kwargs
+        **kwargs,
     ):  # pylint: disable=too-many-arguments
         """
         Provide a backwards-compatible alias of :meth:`fetch`.
@@ -176,5 +176,5 @@ class OGRe(object):
             interval=when,
             location=where,
             quantity=how_many,
-            **kwargs
+            **kwargs,
         )

@@ -30,8 +30,8 @@ def twitter_limits(remaining, reset):
     """Format a Twitter response to a limits request."""
     return {
         "resources": {
-            "search": {"/search/tweets": {"remaining": remaining, "reset": reset}}
-        }
+            "search": {"/search/tweets": {"remaining": remaining, "reset": reset}},
+        },
     }
 
 
@@ -84,8 +84,8 @@ class TwitterTest(unittest.TestCase):
                 "Twitter": {
                     "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
                     "access_token": os.environ.get("TWITTER_ACCESS_TOKEN"),
-                }
-            }
+                },
+            },
         )
         with open("tests/data/Twitter-response-example.json") as tweets:
             self.tweets = json.load(tweets)
@@ -130,7 +130,7 @@ class TwitterTest(unittest.TestCase):
                 "api": {
                     "limit": twitter_limits(0, 1234567890),
                     "return": {
-                        "errors": [{"code": 88, "message": "Rate limit exceeded"}]
+                        "errors": [{"code": 88, "message": "Rate limit exceeded"}],
                     },
                     "effect": None,
                 },
@@ -149,7 +149,7 @@ class TwitterTest(unittest.TestCase):
                     "limit": limit_normal,
                     "return": {
                         "error": "Sorry, your query is too complex."
-                        + " Please reduce complexity and try again."
+                        + " Please reduce complexity and try again.",
                     },
                     "effect": None,
                 },
@@ -205,7 +205,7 @@ class TwitterTest(unittest.TestCase):
             sanitize_twitter(keys={"consumer_key": "key", "access_token": None})
         with self.assertRaises(ValueError):
             sanitize_twitter(
-                keys=self.retriever.keychain[self.retriever.keyring["twitter"]]
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             )
         with self.assertRaises(ValueError):
             sanitize_twitter(
@@ -413,7 +413,7 @@ class TwitterTest(unittest.TestCase):
             network=network,
         )
         network.assert_called_once_with(
-            self.tweets["statuses"][0]["entities"]["media"][0]["media_url_https"]
+            self.tweets["statuses"][0]["entities"]["media"][0]["media_url_https"],
         )
 
     def test_rate_limit_obedience(self):
@@ -575,7 +575,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -593,7 +593,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -642,7 +642,7 @@ class TwitterTest(unittest.TestCase):
                         "text": self.tweets["statuses"][0]["text"],
                         "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -660,7 +660,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -671,7 +671,7 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
         self.assertEqual(1, api().search.call_count)
         network.assert_called_once_with(
-            self.tweets["statuses"][0]["entities"]["media"][0]["media_url"]
+            self.tweets["statuses"][0]["entities"]["media"][0]["media_url"],
         )
 
     def test_strict_media_paging_and_duplication(self):  # pylint: disable=invalid-name
@@ -710,7 +710,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -728,7 +728,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -785,7 +785,7 @@ class TwitterTest(unittest.TestCase):
                         "text": self.tweets["statuses"][0]["text"],
                         "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
                         ).isoformat()
                         + "Z",
                     },
@@ -803,7 +803,7 @@ class TwitterTest(unittest.TestCase):
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"])
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
                         ).isoformat()
                         + "Z",
                     },

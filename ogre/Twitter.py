@@ -22,7 +22,12 @@ with hooks():
 
 
 def sanitize_twitter(
-    keys, media=("image", "text"), keyword="", quantity=15, location=None, interval=None
+    keys,
+    media=("image", "text"),
+    keyword="",
+    quantity=15,
+    location=None,
+    interval=None,
 ):  # pylint: disable=too-many-arguments,too-many-locals
 
     """
@@ -65,7 +70,7 @@ def sanitize_twitter(
         key = key.lower()
         if key not in ("consumer_key", "access_token"):
             raise ValueError(
-                'Valid Twitter keys are "consumer_key" and "access_token".'
+                'Valid Twitter keys are "consumer_key" and "access_token".',
             )
         if not value:
             raise ValueError("Twitter API keys are required.")
@@ -75,7 +80,7 @@ def sanitize_twitter(
         or "access_token" not in clean_keys.keys()
     ):
         raise ValueError(
-            'Twitter API keys must include a "consumer_key" and "access_token".'
+            'Twitter API keys must include a "consumer_key" and "access_token".',
         )
 
     (
@@ -134,7 +139,7 @@ def twitter(
     quantity=15,
     location=None,
     interval=None,
-    **kwargs
+    **kwargs,
 ):
 
     """
@@ -265,7 +270,7 @@ def twitter(
             + str(since_id)
             + str(max_id)
             + str(kwargs)
-        ).encode("utf-8")
+        ).encode("utf-8"),
     ).hexdigest()
 
     log = logging.getLogger(__name__)
@@ -292,7 +297,7 @@ def twitter(
         + ")"
         + " kwargs("
         + str(kwargs)
-        + ")"
+        + ")",
     )
 
     if not kinds or remaining < 1 or modifiers["query_limit"] < 1:
@@ -300,7 +305,8 @@ def twitter(
         return []
 
     api = modifiers["api"](
-        keychain["consumer_key"], access_token=keychain["access_token"]
+        keychain["consumer_key"],
+        access_token=keychain["access_token"],
     )
 
     limits = api.get_application_rate_limit_status()
@@ -323,7 +329,7 @@ def twitter(
 
     collection = []
     for query in range(
-        modifiers["query_limit"]
+        modifiers["query_limit"],
     ):  # pylint: disable=too-many-nested-blocks
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
@@ -342,7 +348,7 @@ def twitter(
                 + " queries produced "
                 + str(len(collection))
                 + " results. "
-                + str(sys.exc_info()[1])
+                + str(sys.exc_info()[1]),
             )
             raise
         if results.get("statuses") is None:
@@ -354,7 +360,7 @@ def twitter(
                 + " queries produced "
                 + str(len(collection))
                 + " results. "
-                + message
+                + message,
             )
             if modifiers["fail_hard"]:
                 raise OGReError(source="Twitter", message=message)
@@ -375,7 +381,7 @@ def twitter(
                 "properties": {
                     "source": "Twitter",
                     "time": datetime.utcfromtimestamp(
-                        snowflake2utc(tweet["id"])
+                        snowflake2utc(tweet["id"]),
                     ).isoformat()
                     + "Z",
                 },
@@ -398,7 +404,7 @@ def twitter(
                                     feature["properties"]["image"] = base64.b64encode(
                                         modifiers["network"](entity[media_url])
                                         .read()
-                                        .encode("utf-8")
+                                        .encode("utf-8"),
                                     )
             if len(feature["properties"]) > 2:
                 collection.append(feature)
@@ -409,7 +415,7 @@ def twitter(
             + " Status:"
             + " 1 query produced "
             + str(remained - remaining)
-            + " results."
+            + " results.",
         )
         if remaining <= 0:
             log.info(
@@ -418,7 +424,7 @@ def twitter(
                 + str(query + 1)
                 + " queries produced "
                 + str(len(collection))
-                + " results."
+                + " results.",
             )
             break
         if results.get("search_metadata", {}).get("next_results") is None:
@@ -432,11 +438,13 @@ def twitter(
                 + " queries produced "
                 + str(len(collection))
                 + " results. "
-                + "No retrievable results remain."
+                + "No retrievable results remain.",
             )
             break
         max_id = int(
-            results["search_metadata"]["next_results"].split("max_id=")[1].split("&")[0]
+            results["search_metadata"]["next_results"]
+            .split("max_id=")[1]
+            .split("&")[0],
         )
         if query + 1 >= modifiers["query_limit"]:
             outcome = "Success" if collection else "Failure"
@@ -449,6 +457,6 @@ def twitter(
                 + " queries produced "
                 + str(len(collection))
                 + " results. "
-                + "No remaining results are retrievable."
+                + "No remaining results are retrievable.",
             )
     return collection

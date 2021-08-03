@@ -63,8 +63,8 @@ class OGReConstructorTest(unittest.TestCase):
                 "Twitter": {
                     "consumer_key": "key",
                     "access_token": "token",
-                }
-            }
+                },
+            },
         )
 
         self.assertEqual(retriever.keyring, {"twitter": "Twitter"})
@@ -74,7 +74,7 @@ class OGReConstructorTest(unittest.TestCase):
                 "Twitter": {
                     "consumer_key": "key",
                     "access_token": "token",
-                }
+                },
             },
         )
 
@@ -115,15 +115,15 @@ class OGReTest(unittest.TestCase):
                 "Twitter": {
                     "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
                     "access_token": os.environ.get("TWITTER_ACCESS_TOKEN"),
-                }
-            }
+                },
+            },
         )
 
         self.api = MagicMock()
         self.api().get_application_rate_limit_status.return_value = {
             "resources": {
-                "search": {"/search/tweets": {"remaining": 2, "reset": 1234567890}}
-            }
+                "search": {"/search/tweets": {"remaining": 2, "reset": 1234567890}},
+            },
         }
         with open("tests/data/Twitter-response-example.json") as tweets:
             self.api().search.return_value = json.load(tweets)

@@ -99,7 +99,8 @@ class ValidationTest(unittest.TestCase):
 
         self.assertEqual(sanitize(media=()), ((), "", 15, None, None))
         self.assertEqual(
-            sanitize(media=("text", "text")), (("text",), "", 15, None, None)
+            sanitize(media=("text", "text")),
+            (("text",), "", 15, None, None),
         )
         self.assertEqual(
             sanitize(location=("0", 0, 0, "km")),
