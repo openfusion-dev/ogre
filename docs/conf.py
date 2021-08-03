@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # OGRe documentation build configuration file, created by
 # sphinx-quickstart on Tue Mar 18 18:24:31 2014.
 #

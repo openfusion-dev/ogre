@@ -49,8 +49,8 @@ def validate(
 
     try:
         str(keyword)
-    except Exception:
-        raise ValueError("Keyword must be a string.")
+    except Exception as exc:
+        raise ValueError("Keyword must be a string.") from exc
 
     if int(quantity) < 0:
         raise ValueError("Quantity must be positive.")

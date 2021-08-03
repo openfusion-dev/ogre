@@ -11,7 +11,7 @@ OGRe Query Handler
 from ogre.Twitter import twitter
 
 
-class OGRe(object):
+class OGRe:
 
     """
     Create objects that contain API keys and API access points.

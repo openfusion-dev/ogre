@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools ~= 44.0", "setuptools-scm[toml] ~= 5.0", "wheel ~= 0.36"]
+requires = ["setuptools ~= 57.0", "setuptools-scm[toml] ~= 6.0", "wheel ~= 0.36"]
 build-backend = "setuptools.build_meta"
 
 [tool.pylint.format]

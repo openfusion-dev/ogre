@@ -12,7 +12,7 @@ class OGReError(Exception):
     """Create exceptions that contain an origin reference and a message."""
 
     def __init__(self, source="unknown", message="error"):
-        super(OGReError, self).__init__()
+        super().__init__()
         self.source = source
         self.message = message
 
@@ -25,5 +25,5 @@ class OGReLimitError(OGReError):
     """Supplement OGReError with a reset timestamp."""
 
     def __init__(self, source="unknown", message="error", reset=None):
-        super(OGReLimitError, self).__init__(source, message)
+        super().__init__(source, message)
         self.reset = reset
