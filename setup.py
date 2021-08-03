@@ -21,7 +21,8 @@ setup(
     author_email="dmtucker@ucsc.edu",
     license="LGPLv2+",
     url="https://github.com/openfusion-dev/ogre",
-    packages=find_packages(exclude=["docs"]),
+    package_dir={"": "src"},
+    packages=find_packages("src"),
     include_package_data=True,
     python_requires=">= 3.6",
     install_requires=[
