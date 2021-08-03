@@ -1,4 +1,11 @@
 [build-system]
 requires = ["setuptools ~= 44.0", "setuptools-scm[toml] ~= 5.0", "wheel ~= 0.36"]
 build-backend = "setuptools.build_meta"
+
+[tool.pylint.format]
+max-line-length = "88"
+
+[tool.pylint.messages_control]
+disable = "C0330, C0326"
+
 [tool.setuptools_scm]

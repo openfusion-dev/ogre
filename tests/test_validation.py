@@ -97,35 +97,31 @@ class ValidationTest(unittest.TestCase):
 
         self.log.debug("Testing the OGRe sanitizer...")
 
+        self.assertEqual(sanitize(media=()), ((), "", 15, None, None))
         self.assertEqual(
-            sanitize(media=()),
-            ((), "", 15, None, None)
-        )
-        self.assertEqual(
-            sanitize(media=("text", "text")),
-            (("text",), "", 15, None, None)
+            sanitize(media=("text", "text")), (("text",), "", 15, None, None)
         )
         self.assertEqual(
             sanitize(location=("0", 0, 0, "km")),
-            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None)
+            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None),
         )
         self.assertEqual(
             sanitize(location=(0, "0", 0, "km")),
-            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None)
+            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None),
         )
         self.assertEqual(
             sanitize(location=(0, 0, "0", "km")),
-            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None)
+            (("image", "sound", "text", "video"), "", 15, (0, 0, 0, "km"), None),
         )
         self.assertEqual(
             sanitize(interval=("0", 0)),
-            (("image", "sound", "text", "video"), "", 15, None, (0, 0))
+            (("image", "sound", "text", "video"), "", 15, None, (0, 0)),
         )
         self.assertEqual(
             sanitize(interval=(0, "0")),
-            (("image", "sound", "text", "video"), "", 15, None, (0, 0))
+            (("image", "sound", "text", "video"), "", 15, None, (0, 0)),
         )
         self.assertEqual(
             sanitize(interval=(1, 0)),
-            (("image", "sound", "text", "video"), "", 15, None, (0, 1))
+            (("image", "sound", "text", "video"), "", 15, None, (0, 1)),
         )

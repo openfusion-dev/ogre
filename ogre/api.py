@@ -55,14 +55,14 @@ class OGRe(object):
         self.keychain = keys
 
     def fetch(
-            self,
-            sources,
-            media=("image", "sound", "text", "video"),
-            keyword="",
-            quantity=15,
-            location=None,
-            interval=None,
-            **kwargs
+        self,
+        sources,
+        media=("image", "sound", "text", "video"),
+        keyword="",
+        quantity=15,
+        location=None,
+        interval=None,
+        **kwargs
     ):  # pylint: disable=too-many-arguments
 
         """
@@ -109,36 +109,33 @@ class OGRe(object):
 
         source_map = {"twitter": twitter}
 
-        feature_collection = {
-            "type": "FeatureCollection",
-            "features": []
-        }
+        feature_collection = {"type": "FeatureCollection", "features": []}
         if media and quantity > 0:
             for source in sources:
                 source = source.lower()
                 if source not in source_map.keys():
                     raise ValueError('Source may be "Twitter".')
                 for features in source_map[source](
-                        keys=self.keychain[self.keyring[source]],
-                        media=media,
-                        keyword=keyword,
-                        quantity=quantity,
-                        location=location,
-                        interval=interval,
-                        **kwargs
+                    keys=self.keychain[self.keyring[source]],
+                    media=media,
+                    keyword=keyword,
+                    quantity=quantity,
+                    location=location,
+                    interval=interval,
+                    **kwargs
                 ):
                     feature_collection["features"].append(features)
         return feature_collection
 
     def get(
-            self,
-            sources,
-            keyword="",
-            what=("image", "sound", "text", "video"),
-            when=None,
-            where=None,
-            how_many=15,
-            **kwargs
+        self,
+        sources,
+        keyword="",
+        what=("image", "sound", "text", "video"),
+        when=None,
+        where=None,
+        how_many=15,
+        **kwargs
     ):  # pylint: disable=too-many-arguments
         """
         Provide a backwards-compatible alias of :meth:`fetch`.

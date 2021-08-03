@@ -8,11 +8,11 @@ OGRe Parameter Validator
 
 
 def validate(
-        media=("image", "sound", "text", "video"),
-        keyword="",
-        quantity=15,
-        location=None,
-        interval=None,
+    media=("image", "sound", "text", "video"),
+    keyword="",
+    quantity=15,
+    location=None,
+    interval=None,
 ):  # pylint: disable=too-many-branches
 
     """
@@ -44,15 +44,8 @@ def validate(
     if media is not None:
         for medium in media:
             medium = medium.lower()
-            if medium not in (
-                    "image",
-                    "sound",
-                    "text",
-                    "video"
-            ):
-                raise ValueError(
-                    'Medium may be "image", "sound", "text", or "video".'
-                )
+            if medium not in ("image", "sound", "text", "video"):
+                raise ValueError('Medium may be "image", "sound", "text", or "video".')
 
     try:
         str(keyword)
@@ -64,9 +57,7 @@ def validate(
 
     if location is not None:
         if len(location) != 4:
-            raise ValueError(
-                "usage: where=(latitude, longitude, radius, unit)"
-            )
+            raise ValueError("usage: where=(latitude, longitude, radius, unit)")
         latitude = float(location[0])
         if latitude < -90 or latitude > 90:
             raise ValueError("Latitude must be -90 to 90.")
@@ -92,11 +83,11 @@ def validate(
 
 
 def sanitize(
-        media=("image", "sound", "text", "video"),
-        keyword="",
-        quantity=15,
-        location=None,
-        interval=None,
+    media=("image", "sound", "text", "video"),
+    keyword="",
+    quantity=15,
+    location=None,
+    interval=None,
 ):  # pylint: disable=too-many-locals
 
     """Validate and transform input to expected types.
@@ -132,7 +123,7 @@ def sanitize(
         keyword=keyword,
         quantity=quantity,
         location=location,
-        interval=interval
+        interval=interval,
     )
 
     clean_media = []
@@ -162,10 +153,4 @@ def sanitize(
             since, until = until, since
         clean_interval = (since, until)
 
-    return (
-        clean_media,
-        clean_keyword,
-        clean_quantity,
-        clean_location,
-        clean_interval
-    )
+    return (clean_media, clean_keyword, clean_quantity, clean_location, clean_interval)

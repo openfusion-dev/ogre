@@ -17,7 +17,7 @@ class OGReError(Exception):
         self.message = message
 
     def __str__(self):
-        return self.source+": "+self.message
+        return self.source + ": " + self.message
 
 
 class OGReLimitError(OGReError):

@@ -67,10 +67,7 @@ class OGReConstructorTest(unittest.TestCase):
             }
         )
 
-        self.assertEqual(
-            retriever.keyring,
-            {"twitter": "Twitter"}
-        )
+        self.assertEqual(retriever.keyring, {"twitter": "Twitter"})
         self.assertEqual(
             retriever.keychain,
             {
@@ -78,7 +75,7 @@ class OGReConstructorTest(unittest.TestCase):
                     "consumer_key": "key",
                     "access_token": "token",
                 }
-            }
+            },
         )
 
 
@@ -117,7 +114,7 @@ class OGReTest(unittest.TestCase):
             keys={
                 "Twitter": {
                     "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
-                    "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
+                    "access_token": os.environ.get("TWITTER_ACCESS_TOKEN"),
                 }
             }
         )
@@ -125,12 +122,7 @@ class OGReTest(unittest.TestCase):
         self.api = MagicMock()
         self.api().get_application_rate_limit_status.return_value = {
             "resources": {
-                "search": {
-                    "/search/tweets": {
-                        "remaining": 2,
-                        "reset": 1234567890
-                    }
-                }
+                "search": {"/search/tweets": {"remaining": 2, "reset": 1234567890}}
             }
         }
         with open("tests/data/Twitter-response-example.json") as tweets:
@@ -154,30 +146,25 @@ class OGReTest(unittest.TestCase):
         self.log.debug("Testing the main entry point to OGRe...")
 
         with self.assertRaises(ValueError):
-            self.retriever.get(("invalid",),)
+            self.retriever.get(
+                ("invalid",),
+            )
         with self.assertRaises(ValueError):
-            self.retriever.get(("Twitter", "invalid"),)
+            self.retriever.get(
+                ("Twitter", "invalid"),
+            )
 
         self.assertEqual(
             self.retriever.fetch(sources=()),
-            {
-                "type": "FeatureCollection",
-                "features": []
-            }
+            {"type": "FeatureCollection", "features": []},
         )
         self.assertEqual(
             self.retriever.fetch(sources=("Twitter",), media=()),
-            {
-                "type": "FeatureCollection",
-                "features": []
-            }
+            {"type": "FeatureCollection", "features": []},
         )
         self.assertEqual(
             self.retriever.fetch(sources=("Twitter",), quantity=0),
-            {
-                "type": "FeatureCollection",
-                "features": []
-            }
+            {"type": "FeatureCollection", "features": []},
         )
 
         self.api.reset_mock()
@@ -185,9 +172,7 @@ class OGReTest(unittest.TestCase):
         control = {
             "type": "FeatureCollection",
             "features": twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("image", "text"),
                 keyword="test",
                 quantity=2,
@@ -196,8 +181,8 @@ class OGReTest(unittest.TestCase):
                 test=True,
                 test_message="GeoJSON FeatureCollection Packaging (Control)",
                 api=self.api,
-                network=self.network
-            )
+                network=self.network,
+            ),
         }
         self.api.reset_mock()
         self.network.reset_mock()
@@ -213,6 +198,6 @@ class OGReTest(unittest.TestCase):
                 test=True,
                 test_message="GeoJSON FeatureCollection Packaging",
                 api=self.api,
-                network=self.network
-            )
+                network=self.network,
+            ),
         )
