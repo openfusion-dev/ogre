@@ -135,7 +135,7 @@ def twitter(
     location=None,
     interval=None,
     **kwargs
-):  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
+):
 
     """
     Fetch Tweets from the Twitter API.

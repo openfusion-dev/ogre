@@ -8,4 +8,4 @@ OpenFusion GeoJSON Retriever
 :mod:`ogre.validation` -- module for parameter validation and sanitation
 """
 
-from ogre.api import OGRe
+from ogre.api import OGRe  # noqa: F401

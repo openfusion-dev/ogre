@@ -23,7 +23,7 @@ def source():
 def test___main__():
     """Test python -m functionality."""
     with pytest.raises(SystemExit) as excinfo:
-        import ogre.__main__  # pylint: disable=redefined-outer-name, unused-variable
+        __import__("ogre.__main__")
     assert excinfo.value != 0
 
 
