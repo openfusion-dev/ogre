@@ -92,7 +92,7 @@ class TwitterTest(unittest.TestCase):
                 }
             }
         )
-        with open("ogre/test/data/Twitter-response-example.json") as tweets:
+        with open("tests/data/Twitter-response-example.json") as tweets:
             self.tweets = json.load(tweets)
         depleted_tweets = copy.deepcopy(self.tweets)
         depleted_tweets["search_metadata"].pop("next_results", None)

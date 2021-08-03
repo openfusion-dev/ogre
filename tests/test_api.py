@@ -133,7 +133,7 @@ class OGReTest(unittest.TestCase):
                 }
             }
         }
-        with open("ogre/test/data/Twitter-response-example.json") as tweets:
+        with open("tests/data/Twitter-response-example.json") as tweets:
             self.api().search.return_value = json.load(tweets)
         self.api.reset_mock()
         self.network = MagicMock()

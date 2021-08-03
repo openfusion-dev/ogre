@@ -23,11 +23,9 @@ setup(
     url='https://github.com/openfusion-dev/ogre',
     packages=find_packages(exclude=['docs']),
     include_package_data=True,
-    test_suite="ogre.test",
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,<4',
     install_requires=[
         'future ~= 0.16.0',
-        'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
     options={'bdist_wheel': {'universal': True}},
