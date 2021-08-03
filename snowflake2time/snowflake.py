@@ -9,8 +9,9 @@
 # Python by default has unlimited integer precision, so this is mostly
 # an exercise in date/time/UTC conversion
 
-import time
 import calendar
+import datetime
+import time
 
 def str2utc(s):
     # parse twitter time string into UTC seconds, unix-style
