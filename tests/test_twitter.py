@@ -18,12 +18,14 @@ import os
 import unittest
 from datetime import datetime
 from io import StringIO
+
 from mock import MagicMock
 from twython import TwythonError
-from snowflake2time import snowflake
+
 from ogre import OGRe
 from ogre.exceptions import OGReError, OGReLimitError
 from ogre.Twitter import twitter, sanitize_twitter
+import snowflake2time as snowflake
 
 
 def twitter_limits(remaining, reset):

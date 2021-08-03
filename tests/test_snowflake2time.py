@@ -7,7 +7,7 @@
 
 import unittest
 
-import snowflake2time.snowflake as snowflake
+import snowflake2time as snowflake
 
 
 class SnowflakeTest(unittest.TestCase):

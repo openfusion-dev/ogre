@@ -7,6 +7,9 @@ https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
 
+import glob
+import os.path
+
 from setuptools import setup, find_packages
 
 with open("README.rst") as readme_file:
@@ -21,6 +24,9 @@ setup(
     author_email="dmtucker@ucsc.edu",
     license="LGPLv2+",
     url="https://github.com/openfusion-dev/ogre",
+    py_modules=[
+        os.path.splitext(os.path.basename(path))[0] for path in glob.glob("src/*.py")
+    ],
     package_dir={"": "src"},
     packages=find_packages("src"),
     include_package_data=True,
