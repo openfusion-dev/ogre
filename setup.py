@@ -15,7 +15,6 @@ with open('README.rst') as readme_file:
 
 setup(
     name="OGRe",
-    version='4.6.0',
     description='OpenFusion GeoJSON Retriever',
     long_description=README,
     author='David Tucker',
@@ -31,6 +30,7 @@ setup(
         'mock ~= 1.0.1',
         'twython ~= 3.4',
     ],
+    options={'bdist_wheel': {'universal': True}},
     entry_points={'console_scripts': ['ogre = ogre.cli:main']},
     keywords='OpenFusion Twitter GeoJSON geotag',
     classifiers=[
