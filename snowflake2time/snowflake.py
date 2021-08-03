@@ -1,3 +1,4 @@
+
 # Twitter Snowflake ID to timestamp (and back)
 # https://github.com/client9/snowflake2time/
 # Nick Galbreath @ngalbreath nickg@client9.com
@@ -17,8 +18,6 @@ def str2utc(s):
     return calendar.timegm(time.strptime(s, "%a %b %d %H:%M:%S +0000 %Y"))
 
 def utc2snowflake(stamp):
-    # Modified by David Tucker on 2014-03-15 to correct support
-    #   for creating millisecond-precise Snowflake IDs.
     return (int(round(stamp * 1000)) - 1288834974657) << 22
 
 def snowflake2utc(sf):
