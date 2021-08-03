@@ -7,25 +7,25 @@
 
 import unittest
 
-from snowflake2time.snowflake import *
+import snowflake2time.snowflake as snowflake
 
 
 class SnowflakeTest(unittest.TestCase):
     def test_str2utc(self):
-        stamp = str2utc("Mon May 21 22:16:35 +0000 2012")
+        stamp = snowflake.str2utc("Mon May 21 22:16:35 +0000 2012")
         self.assertEquals(stamp, 1337638595)
 
     def test_snowflake2utc(self):
-        utc = snowflake2utc(204697221847986177)
+        utc = snowflake.snowflake2utc(204697221847986177)
         self.assertEquals(int(utc), int(1337638595.44))
 
     def test_snowflake2utcms(self):
-        utc = snowflake2utcms(204697221847986177)
+        utc = snowflake.snowflake2utcms(204697221847986177)
         # danger floating point maths
         self.assertAlmostEqual(utc, 1337638595436)
 
     def test_diff(self):
-        diff = snowflake2utcms(204697221847986177) - str2utcms(
+        diff = snowflake.snowflake2utcms(204697221847986177) - snowflake.str2utcms(
             "Mon May 21 22:16:35 +0000 2012",
         )
         self.assertEquals(diff, 436)
