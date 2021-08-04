@@ -488,7 +488,7 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(0, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_TwythonError_relay(self):  # pylint: disable=invalid-name
+    def test_TwythonError_relay(self):
         """TwythonErrors are relayed correctly."""
         self.log.debug("Testing TwythonError relay...")
         api = self.injectors["api"]["imitate"]
@@ -524,7 +524,7 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_empty_response_with_hard_failure(self):  # pylint: disable=invalid-name
+    def test_empty_response_with_hard_failure(self):
         """No "statuses" key in fail_hard Twitter response causes an exception."""
         self.log.debug("Testing empty response with hard failure...")
         api = self.injectors["api"]["complex"]
@@ -542,7 +542,7 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_filtering_and_page_depletion(self):  # pylint: disable=invalid-name
+    def test_filtering_and_page_depletion(self):
         """
         Ungeotagged or untimestamped results are omitted.
         "Text" media is returned when requested.
@@ -607,7 +607,7 @@ class TwitterTest(unittest.TestCase):
         self.assertEqual(1, api().search.call_count)
         self.assertEqual(0, network.call_count)
 
-    def test_filtering_counting_and_HTTP(self):  # pylint: disable=invalid-name
+    def test_filtering_counting_and_HTTP(self):
         """
         "Text" media is returned when not requested.
         "Image" media is returned when requested.
@@ -676,7 +676,7 @@ class TwitterTest(unittest.TestCase):
             self.tweets["statuses"][0]["entities"]["media"][0]["media_url"],
         )
 
-    def test_strict_media_paging_and_duplication(self):  # pylint: disable=invalid-name
+    def test_strict_media_paging_and_duplication(self):
         """
         Setting "strict_media" kwarg to True returns only requested media.
         Parameters for paging are computed correctly.

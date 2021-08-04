@@ -13,9 +13,6 @@ def source():
     return random.choice(["twitter"])
 
 
-# pylint: disable=redefined-outer-name
-
-
 def test___main__():
     """Test python -m functionality."""
     with pytest.raises(SystemExit) as excinfo:
