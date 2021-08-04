@@ -257,7 +257,7 @@ def twitter(
         if kwargs.get(modifier) is not None:
             modifiers[modifier] = kwargs[modifier]
 
-    qid = hashlib.md5(
+    qid = hashlib.sha256(
         (
             str(time.time())
             + str(keywords)
