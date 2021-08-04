@@ -11,7 +11,7 @@ import sys
 import time
 from urllib.request import urlopen
 from datetime import datetime
-from twython import Twython
+from twython import Twython  # type: ignore
 from ogre.validation import sanitize
 from ogre.exceptions import OGReError, OGReLimitError
 from snowflake2time import snowflake2utc, utc2snowflake

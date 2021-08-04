@@ -10,7 +10,7 @@ https://github.com/pypa/sampleproject
 import glob
 import os.path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages  # type: ignore
 
 with open("README.rst") as readme_file:
     README = readme_file.read()
