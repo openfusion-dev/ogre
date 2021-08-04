@@ -18,25 +18,22 @@ import os
 import unittest
 from datetime import datetime
 from io import StringIO
+
 from mock import MagicMock
 from twython import TwythonError
-from snowflake2time import snowflake
+
 from ogre import OGRe
 from ogre.exceptions import OGReError, OGReLimitError
 from ogre.Twitter import twitter, sanitize_twitter
+import snowflake2time as snowflake
 
 
 def twitter_limits(remaining, reset):
     """Format a Twitter response to a limits request."""
     return {
         "resources": {
-            "search": {
-                "/search/tweets": {
-                    "remaining": remaining,
-                    "reset": reset
-                }
-            }
-        }
+            "search": {"/search/tweets": {"remaining": remaining, "reset": reset}},
+        },
     }
 
 
@@ -88,11 +85,11 @@ class TwitterTest(unittest.TestCase):
             keys={
                 "Twitter": {
                     "consumer_key": os.environ.get("TWITTER_CONSUMER_KEY"),
-                    "access_token": os.environ.get("TWITTER_ACCESS_TOKEN")
-                }
-            }
+                    "access_token": os.environ.get("TWITTER_ACCESS_TOKEN"),
+                },
+            },
         )
-        with open("ogre/test/data/Twitter-response-example.json") as tweets:
+        with open("tests/data/Twitter-response-example.json") as tweets:
             self.tweets = json.load(tweets)
         depleted_tweets = copy.deepcopy(self.tweets)
         depleted_tweets["search_metadata"].pop("next_results", None)
@@ -102,99 +99,80 @@ class TwitterTest(unittest.TestCase):
                 "api": {
                     "limit": limit_normal,
                     "return": copy.deepcopy(self.tweets),
-                    "effect": None
+                    "effect": None,
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image")
-                }
+                    "effect": lambda _: StringIO(u"test_image"),
+                },
             },
             "malformed_limits": {
                 "api": {
                     "limit": {},
                     "return": copy.deepcopy(self.tweets),
-                    "effect": None
+                    "effect": None,
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image")
-                }
+                    "effect": lambda _: StringIO(u"test_image"),
+                },
             },
             "low_limits": {
                 "api": {
                     "limit": twitter_limits(1, 1234567890),
                     "return": copy.deepcopy(self.tweets),
-                    "effect": None
+                    "effect": None,
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image")
-                }
+                    "effect": lambda _: StringIO(u"test_image"),
+                },
             },
             "limited": {
                 "api": {
                     "limit": twitter_limits(0, 1234567890),
                     "return": {
-                        "errors": [
-                            {
-                                "code": 88,
-                                "message": "Rate limit exceeded"
-                            }
-                        ]
+                        "errors": [{"code": 88, "message": "Rate limit exceeded"}],
                     },
-                    "effect": None
+                    "effect": None,
                 },
-                "network": {
-                    "return": None,
-                    "effect": Exception()
-                }
+                "network": {"return": None, "effect": Exception()},
             },
             "imitate": {
                 "api": {
                     "limit": limit_normal,
                     "return": None,
-                    "effect": TwythonError("TwythonError")
+                    "effect": TwythonError("TwythonError"),
                 },
-                "network": {
-                    "return": None,
-                    "effect": Exception()
-                }
+                "network": {"return": None, "effect": Exception()},
             },
             "complex": {
                 "api": {
                     "limit": limit_normal,
                     "return": {
-                        "error": "Sorry, your query is too complex." +
-                                 " Please reduce complexity and try again."
+                        "error": "Sorry, your query is too complex."
+                        + " Please reduce complexity and try again.",
                     },
-                    "effect": None
+                    "effect": None,
                 },
-                "network": {
-                    "return": None,
-                    "effect": Exception()
-                }
+                "network": {"return": None, "effect": Exception()},
             },
             "deplete": {
                 "api": {
                     "limit": twitter_limits(1, 1234567890),
                     "return": copy.deepcopy(depleted_tweets),
-                    "effect": None
+                    "effect": None,
                 },
-                "network": {
-                    "return": StringIO(u"test_image"),
-                    "effect": None
-                }
-            }
+                "network": {"return": StringIO(u"test_image"), "effect": None},
+            },
         }
 
-        self.injectors = {
-            "api": {},
-            "network": {}
-        }
+        self.injectors = {"api": {}, "network": {}}
         for name, dependencies in dependency_injections.items():
             api = MagicMock()
-            api().get_application_rate_limit_status.return_value =\
-                dependencies["api"]["limit"]
+            api().get_application_rate_limit_status.return_value = dependencies["api"][
+                "limit"
+            ]
             api().search.return_value = dependencies["api"]["return"]
             api().search.side_effect = dependencies["api"]["effect"]
             api.reset_mock()
@@ -226,100 +204,75 @@ class TwitterTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sanitize_twitter(keys={"consumer_key": "key", "invalid": None})
         with self.assertRaises(ValueError):
+            sanitize_twitter(keys={"consumer_key": "key", "access_token": None})
+        with self.assertRaises(ValueError):
             sanitize_twitter(
-                keys={
-                    "consumer_key": "key",
-                    "access_token": None
-                }
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             )
         with self.assertRaises(ValueError):
             sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ]
-            )
-        with self.assertRaises(ValueError):
-            sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
-                location=(2, 1, 0, "km")
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
+                location=(2, 1, 0, "km"),
             )
 
         self.assertEqual(
             sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("text",),
-                keyword="test"
+                keyword="test",
             ),
             (
-                self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                self.retriever.keychain[self.retriever.keyring["twitter"]],
                 ("text",),
                 "test -pic.twitter.com",
                 15,
                 None,
-                (None, None)
-            )
+                (None, None),
+            ),
         )
         self.assertEqual(
             sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("image",),
-                keyword="test"
+                keyword="test",
             ),
             (
-                self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                self.retriever.keychain[self.retriever.keyring["twitter"]],
                 ("image",),
                 "test  pic.twitter.com",
                 15,
                 None,
-                (None, None)
-            )
+                (None, None),
+            ),
         )
         self.assertEqual(
             sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
-                location=(0, 1, 2, "km")
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
+                location=(0, 1, 2, "km"),
             ),
             (
-                self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                self.retriever.keychain[self.retriever.keyring["twitter"]],
                 ("image", "text"),
                 "",
                 15,
                 "0.0,1.0,2.0km",
-                (None, None)
-            )
+                (None, None),
+            ),
         )
         self.assertEqual(
             sanitize_twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
-                interval=(0, 1)
+                interval=(0, 1),
             ),
             (
-                self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                self.retriever.keychain[self.retriever.keyring["twitter"]],
                 ("image", "text"),
                 "test",
                 15,
                 None,
-                (-5405765689543753728, -5405765685349449728)
-            )
+                (-5405765689543753728, -5405765685349449728),
+            ),
         )
 
     def test_empty_media(self):
@@ -329,15 +282,13 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=(),
                 keyword="test",
                 api=api,
-                network=network
+                network=network,
             ),
-            []
+            [],
         )
         self.assertEqual(0, api.call_count)
         self.assertEqual(0, api().get_application_rate_limit_status.call_count)
@@ -351,15 +302,13 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 quantity=0,
                 api=api,
-                network=network
+                network=network,
             ),
-            []
+            [],
         )
         self.assertEqual(0, api.call_count)
         self.assertEqual(0, api().get_application_rate_limit_status.call_count)
@@ -373,17 +322,15 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 query_limit=0,
                 test=True,
                 test_message="Quantity Fail-Fast",
                 api=api,
-                network=network
+                network=network,
             ),
-            []
+            [],
         )
         self.assertEqual(0, api.call_count)
         self.assertEqual(0, api().get_application_rate_limit_status.call_count)
@@ -396,24 +343,20 @@ class TwitterTest(unittest.TestCase):
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
         twitter(
-            keys=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ],
+            keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             media=("image", "text"),
             keyword="test",
             quantity=2,
             location=(4, 3, 2, "km"),
             interval=(1, 0),
             api=api,
-            network=network
+            network=network,
         )
         api.assert_called_once_with(
-            self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ]["consumer_key"],
-            access_token=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ]["access_token"]
+            self.retriever.keychain[self.retriever.keyring["twitter"]]["consumer_key"],
+            access_token=self.retriever.keychain[self.retriever.keyring["twitter"]][
+                "access_token"
+            ],
         )
 
     def test_rate_limit_retrieval(self):
@@ -422,16 +365,14 @@ class TwitterTest(unittest.TestCase):
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
         twitter(
-            keys=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ],
+            keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             media=("image", "text"),
             keyword="test",
             quantity=2,
             location=(4, 3, 2, "km"),
             interval=(1, 0),
             api=api,
-            network=network
+            network=network,
         )
         api().get_application_rate_limit_status.assert_called_once_with()
 
@@ -441,23 +382,21 @@ class TwitterTest(unittest.TestCase):
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
         twitter(
-            keys=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ],
+            keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             media=("image", "text"),
             keyword="test",
             quantity=2,
             location=(4, 3, 2, "km"),
             interval=(1, 0),
             api=api,
-            network=network
+            network=network,
         )
         api().search.assert_called_once_with(
             q="test",
             count=2,
             geocode="4.0,3.0,2.0km",
             since_id=-5405765689543753728,
-            max_id=-5405765685349449728
+            max_id=-5405765685349449728,
         )
 
     def test_default_https(self):
@@ -466,20 +405,17 @@ class TwitterTest(unittest.TestCase):
         api = self.injectors["api"]["regular"]
         network = self.injectors["network"]["regular"]
         twitter(
-            keys=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ],
+            keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             media=("image", "text"),
             keyword="test",
             quantity=2,
             location=(4, 3, 2, "km"),
             interval=(1, 0),
             api=api,
-            network=network
+            network=network,
         )
         network.assert_called_once_with(
-            self.tweets["statuses"][0]
-            ["entities"]["media"][0]["media_url_https"]
+            self.tweets["statuses"][0]["entities"]["media"][0]["media_url_https"],
         )
 
     def test_rate_limit_obedience(self):
@@ -489,14 +425,12 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["limited"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 api=api,
-                network=network
+                network=network,
             ),
-            []
+            [],
         )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -510,9 +444,7 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["malformed_limits"]
         with self.assertRaises(KeyError):
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 api=api,
                 network=network,
@@ -528,9 +460,7 @@ class TwitterTest(unittest.TestCase):
         api = self.injectors["api"]["low_limits"]
         network = self.injectors["network"]["low_limits"]
         twitter(
-            keys=self.retriever.keychain[
-                self.retriever.keyring["twitter"]
-            ],
+            keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
             keyword="test",
             api=api,
             network=network,
@@ -547,13 +477,11 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["limited"]
         with self.assertRaises(OGReLimitError):
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 fail_hard=True,
                 api=api,
-                network=network
+                network=network,
             )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -567,12 +495,10 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["imitate"]
         with self.assertRaises(TwythonError):
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 api=api,
-                network=network
+                network=network,
             )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -586,14 +512,12 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["complex"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 api=api,
-                network=network
+                network=network,
             ),
-            []
+            [],
         )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -607,13 +531,11 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["complex"]
         with self.assertRaises(OGReError):
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 keyword="test",
                 fail_hard=True,
                 api=api,
-                network=network
+                network=network,
             )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -632,16 +554,14 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["deplete"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("text",),
                 keyword="test",
                 quantity=4,
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
                 api=api,
-                network=network
+                network=network,
             ),
             [
                 {
@@ -649,42 +569,38 @@ class TwitterTest(unittest.TestCase):
                         "type": "Point",
                         "coordinates": [
                             self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][0]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
                 },
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][1]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
-                }
-            ]
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
+                },
+            ],
         )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -703,9 +619,7 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("image",),
                 keyword="test",
                 quantity=1,
@@ -713,59 +627,53 @@ class TwitterTest(unittest.TestCase):
                 interval=(3, 4),
                 secure=False,
                 api=api,
-                network=network
+                network=network,
             ),
             [
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
-                        "image": base64.b64encode("test_image".encode('utf-8')),
+                        "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][0]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
                 },
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][1]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
-                }
-            ]
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
+                },
+            ],
         )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
         self.assertEqual(1, api().search.call_count)
         network.assert_called_once_with(
-            self.tweets["statuses"][0]["entities"]["media"][0]["media_url"]
+            self.tweets["statuses"][0]["entities"]["media"][0]["media_url"],
         )
 
     def test_strict_media_paging_and_duplication(self):  # pylint: disable=invalid-name
@@ -780,9 +688,7 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("image",),
                 keyword="test",
                 quantity=2,
@@ -790,52 +696,46 @@ class TwitterTest(unittest.TestCase):
                 interval=(3, 4),
                 strict_media=True,
                 api=api,
-                network=network
+                network=network,
             ),
             [
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
-                        "image": base64.b64encode("test_image".encode('utf-8')),
+                        "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][0]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
                 },
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
-                        "image": base64.b64encode("test_image".encode('utf-8')),
+                        "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][0]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
-                }
-            ]
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
+                },
+            ],
         )
         self.assertEqual(1, api.call_count)
         self.assertEqual(1, api().get_application_rate_limit_status.call_count)
@@ -845,14 +745,14 @@ class TwitterTest(unittest.TestCase):
             count=2,
             geocode="0.0,0.1,2.0km",
             since_id=-5405765676960841728,
-            max_id=-5405765672766537728
+            max_id=-5405765672766537728,
         )
         api().search.assert_has_any_call(
             q="test pic.twitter.com",
             count=1,
             geocode="0.0,0.1,2.0km",
             since_id=-5405765676960841728,
-            max_id=445633721891164159
+            max_id=445633721891164159,
         )
         self.assertEqual(2, network.call_count)
 
@@ -863,60 +763,52 @@ class TwitterTest(unittest.TestCase):
         network = self.injectors["network"]["regular"]
         self.assertEqual(
             twitter(
-                keys=self.retriever.keychain[
-                    self.retriever.keyring["twitter"]
-                ],
+                keys=self.retriever.keychain[self.retriever.keyring["twitter"]],
                 media=("image", "text"),
                 keyword="test",
                 quantity=2,
                 location=(0, 1, 2, "km"),
                 interval=(3, 4),
                 api=api,
-                network=network
+                network=network,
             ),
             [
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][0]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][0]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][0]["text"],
-                        "image": base64.b64encode("test_image".encode('utf-8')),
+                        "image": base64.b64encode("test_image".encode("utf-8")),
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][0]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
+                            snowflake.snowflake2utc(self.tweets["statuses"][0]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
                 },
                 {
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][0],
-                            self.tweets["statuses"][1]
-                            ["coordinates"]["coordinates"][1]
-                        ]
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][0],
+                            self.tweets["statuses"][1]["coordinates"]["coordinates"][1],
+                        ],
                     },
                     "type": "Feature",
                     "properties": {
                         "source": "Twitter",
                         "text": self.tweets["statuses"][1]["text"],
                         "time": datetime.utcfromtimestamp(
-                            snowflake.snowflake2utc(
-                                self.tweets["statuses"][1]["id"]
-                            )
-                        ).isoformat()+"Z"
-                    }
-                }
-            ]
+                            snowflake.snowflake2utc(self.tweets["statuses"][1]["id"]),
+                        ).isoformat()
+                        + "Z",
+                    },
+                },
+            ],
         )

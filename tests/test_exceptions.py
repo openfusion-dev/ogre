@@ -1,8 +1,4 @@
-# coding: utf-8
-
 """Tests for ogre.exceptions"""
-
-from __future__ import absolute_import
 
 import ogre.exceptions
 

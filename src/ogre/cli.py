@@ -23,41 +23,47 @@ def cli(parser=None):
         default=None,
     )
     parser.add_argument(
-        "-s", "--sources",
-        help="Specify public APIs to get content from (required)." +
-        " 'Twitter' is currently the only supported source.",
+        "-s",
+        "--sources",
+        help="Specify public APIs to get content from (required)."
+        + " 'Twitter' is currently the only supported source.",
         action="append",
         required=True,
     )
     parser.add_argument(
-        "-m", "--media",
-        help="Specify content mediums to fetch." +
-        " 'image', 'sound', 'text', and 'video' are supported.",
+        "-m",
+        "--media",
+        help="Specify content mediums to fetch."
+        + " 'image', 'sound', 'text', and 'video' are supported.",
         default=None,
         action="append",
     )
     parser.add_argument(
-        "-k", "--keyword",
+        "-k",
+        "--keyword",
         help="Specify search criteria.",
         default="",
     )
     parser.add_argument(
-        "-q", "--quantity",
+        "-q",
+        "--quantity",
         help="Specify a quota of results to fetch.",
         type=int,
         default=15,
     )
     parser.add_argument(
-        "-l", "--location",
-        help="Specify a place (latitude, longitude, radius, unit) to search." +
-        " 'km' and 'mi' are supported units.",
+        "-l",
+        "--location",
+        help="Specify a place (latitude, longitude, radius, unit) to search."
+        + " 'km' and 'mi' are supported units.",
         default=None,
         nargs=4,
     )
     parser.add_argument(
-        "-i", "--interval",
-        help="Specify a period of time (earliest, latest) to search." +
-        " Each moment should be a POSIX timestamp.",
+        "-i",
+        "--interval",
+        help="Specify a period of time (earliest, latest) to search."
+        + " Each moment should be a POSIX timestamp.",
         default=None,
         nargs=2,
     )
