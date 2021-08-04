@@ -13,7 +13,7 @@ def validate(
     quantity=15,
     location=None,
     interval=None,
-):  # pylint: disable=too-many-branches
+):
 
     """
     Check common interface parameters for errors and validity.
@@ -88,7 +88,7 @@ def sanitize(
     quantity=15,
     location=None,
     interval=None,
-):  # pylint: disable=too-many-locals
+):
 
     """Validate and transform input to expected types.
 

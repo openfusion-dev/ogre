@@ -24,7 +24,7 @@ def sanitize_twitter(
     quantity=15,
     location=None,
     interval=None,
-):  # pylint: disable=too-many-arguments,too-many-locals
+):
 
     """
     Validate and prepare parameters for use in Twitter data retrieval.
@@ -326,7 +326,7 @@ def twitter(
     collection = []
     for query in range(
         modifiers["query_limit"],
-    ):  # pylint: disable=too-many-nested-blocks
+    ):
         count = min(remaining, 100)  # Twitter accepts a max count of 100.
         try:
             results = api.search(

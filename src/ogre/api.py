@@ -63,7 +63,7 @@ class OGRe:
         location=None,
         interval=None,
         **kwargs,
-    ):  # pylint: disable=too-many-arguments
+    ):
 
         """
         Get geotagged data from public APIs.
@@ -136,7 +136,7 @@ class OGRe:
         where=None,
         how_many=15,
         **kwargs,
-    ):  # pylint: disable=too-many-arguments
+    ):
         """
         Provide a backwards-compatible alias of :meth:`fetch`.
 

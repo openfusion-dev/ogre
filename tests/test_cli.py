@@ -13,21 +13,18 @@ def source():
     return random.choice(["twitter"])
 
 
-# pylint: disable=redefined-outer-name
-
-
 def test___main__():
     """Test python -m functionality."""
     with pytest.raises(SystemExit) as excinfo:
         __import__("ogre.__main__")
-    assert excinfo.value != 0
+    assert excinfo.value.code != 0
 
 
 def test_empty():
     """Test invocation with no arguments."""
     with pytest.raises(SystemExit) as excinfo:
         ogre.cli.main()
-    assert excinfo.value != 0
+    assert excinfo.value.code != 0
 
 
 def test_no_credentials(source):
