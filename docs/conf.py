@@ -43,8 +43,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"OGRe"
-copyright = u"2014, David Tucker"
+project = "OGRe"
+copyright = "2014, David Tucker"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -194,7 +194,7 @@ htmlhelp_basename = "OGRedoc"
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    ("index", "OGRe.tex", u"OGRe Documentation", u"David Tucker", "manual"),
+    ("index", "OGRe.tex", "OGRe Documentation", "David Tucker", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -222,7 +222,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "ogre", u"OGRe Documentation", [u"David Tucker"], 1)]
+man_pages = [("index", "ogre", "OGRe Documentation", ["David Tucker"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -237,8 +237,8 @@ texinfo_documents = [
     (
         "index",
         "OGRe",
-        u"OGRe Documentation",
-        u"David Tucker",
+        "OGRe Documentation",
+        "David Tucker",
         "OGRe",
         "OpenFusion GeoJSON Retriever",
         "Miscellaneous",

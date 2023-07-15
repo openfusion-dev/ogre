@@ -14,7 +14,6 @@ def validate(
     location=None,
     interval=None,
 ):
-
     """
     Check common interface parameters for errors and validity.
 
@@ -89,7 +88,6 @@ def sanitize(
     location=None,
     interval=None,
 ):
-
     """Validate and transform input to expected types.
 
     .. seealso:: :meth:`validate` describes the format each
