@@ -39,7 +39,6 @@ class OGReConstructorTest(unittest.TestCase):
         self.log.debug("Initializing an OGReConstructorTest...")
 
     def test___init__(self):
-
         """
         Test key handling during OGRe construction.
 
@@ -90,7 +89,6 @@ class OGReTest(unittest.TestCase):
     """
 
     def setUp(self):
-
         """
         Prepare to run tests on OGRe.
 
@@ -129,11 +127,10 @@ class OGReTest(unittest.TestCase):
             self.api().search.return_value = json.load(tweets)
         self.api.reset_mock()
         self.network = MagicMock()
-        self.network.side_effect = lambda _: StringIO(u"test_image")
+        self.network.side_effect = lambda _: StringIO("test_image")
         self.network.reset_mock()
 
     def test_fetch(self):
-
         """
         Test the main entry point to OGRe.
 

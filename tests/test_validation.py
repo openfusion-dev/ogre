@@ -29,7 +29,6 @@ class ValidationTest(unittest.TestCase):
         self.log.debug("Initializing a ValidationTest...")
 
     def test_validate(self):
-
         """
         Test input validation.
 
@@ -88,7 +87,6 @@ class ValidationTest(unittest.TestCase):
             validate(interval=(1, -1))
 
     def test_sanitize(self):
-
         """
         Test input sanitation.
 

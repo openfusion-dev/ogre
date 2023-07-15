@@ -25,7 +25,6 @@ def sanitize_twitter(
     location=None,
     interval=None,
 ):
-
     """
     Validate and prepare parameters for use in Twitter data retrieval.
 
@@ -137,7 +136,6 @@ def twitter(
     interval=None,
     **kwargs,
 ):
-
     """
     Fetch Tweets from the Twitter API.
 

@@ -63,7 +63,6 @@ class TwitterTest(unittest.TestCase):
     """
 
     def setUp(self):
-
         """
         Prepare to run tests on the Twitter interface.
 
@@ -103,7 +102,7 @@ class TwitterTest(unittest.TestCase):
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image"),
+                    "effect": lambda _: StringIO("test_image"),
                 },
             },
             "malformed_limits": {
@@ -114,7 +113,7 @@ class TwitterTest(unittest.TestCase):
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image"),
+                    "effect": lambda _: StringIO("test_image"),
                 },
             },
             "low_limits": {
@@ -125,7 +124,7 @@ class TwitterTest(unittest.TestCase):
                 },
                 "network": {
                     "return": None,
-                    "effect": lambda _: StringIO(u"test_image"),
+                    "effect": lambda _: StringIO("test_image"),
                 },
             },
             "limited": {
@@ -163,7 +162,7 @@ class TwitterTest(unittest.TestCase):
                     "return": copy.deepcopy(depleted_tweets),
                     "effect": None,
                 },
-                "network": {"return": StringIO(u"test_image"), "effect": None},
+                "network": {"return": StringIO("test_image"), "effect": None},
             },
         }
 
@@ -184,7 +183,6 @@ class TwitterTest(unittest.TestCase):
             self.injectors["network"][name] = network
 
     def test_sanitize_twitter(self):
-
         """
         Test the Twitter interface parameter sanitizer.
 

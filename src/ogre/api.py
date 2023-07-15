@@ -64,7 +64,6 @@ class OGRe:
         interval=None,
         **kwargs,
     ):
-
         """
         Get geotagged data from public APIs.
 
