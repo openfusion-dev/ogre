@@ -1,6 +1,38 @@
 [build-system]
-requires = ["setuptools ~= 57.0", "setuptools-scm[toml] ~= 6.0", "wheel ~= 0.36"]
+requires = ["setuptools ~= 61.0", "setuptools-scm[toml] ~= 7.1", "wheel ~= 0.40"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "ogre"
+dynamic = ["version"]
+description = "OpenFusion GeoJSON Retriever"
+keywords = ["OpenFusion", "Twitter", "GeoJSON", "geotag"]
+readme = "README.rst"
+license = {file = "LICENSE"}
+maintainers = [
+    {name = "David Tucker", email = "dmtucker@ucsc.edu"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+
+dependencies = [
+    "twython >= 3.4",
+]
+
+[project.entry-points.console_scripts]
+ogre = "ogre.cli:main"
+
+[project.urls]
+homepage = "https://github.com/openfusion-dev/ogre"
 
 [tool.pylint.format]
 max-line-length = "88"
