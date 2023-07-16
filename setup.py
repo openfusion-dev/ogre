@@ -30,7 +30,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("src"),
     include_package_data=True,
-    python_requires=">= 3.7",
+    python_requires=">= 3.8",
     install_requires=[
         "twython >= 3.4",
     ],
@@ -41,7 +41,6 @@ setup(
         "License :: OSI Approved"
         " :: GNU Lesser General Public License v2 or later (LGPLv2+)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Development Status :: 5 - Production/Stable",
