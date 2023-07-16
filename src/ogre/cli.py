@@ -1,8 +1,4 @@
-"""
-Make queries using OGRe directly.
-
-See https://ogre.readthedocs.org/en/latest/ for more information.
-"""
+"""Make queries using OGRe directly."""
 
 import argparse
 import json
